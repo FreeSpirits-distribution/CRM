@@ -476,10 +476,34 @@ input,select,textarea{font-size:16px!important}
 
 <!-- ADMIN TAB -->
 <div class="tab-content" id="tab-admin">
-<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:16px">Gestion des profils agents</h2>
+<div class="ca-header">
+<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Gestion des profils agents</h2>
+<div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
+<button class="btn btn-blue" onclick="openAddAgent()">&#10010; Ajouter un agent</button>
+<span id="admin-count" style="font-size:13px;color:var(--gray-40)"></span>
+</div>
+</div>
+<!-- Add Agent Modal -->
+<div class="ca-add-modal-overlay" id="agent-add-ov" style="display:none" onclick="closeAddAgent(event)">
+<div class="ca-add-modal" onclick="event.stopPropagation()" style="max-width:480px">
+<div class="ca-add-head"><h3>Nouvel agent</h3><button class="ca-add-close" onclick="closeAddAgent()">&times;</button></div>
+<div class="ca-add-body">
+<div class="ca-add-field"><label>Email</label><input type="email" id="ag-email" placeholder="agent@email.com"></div>
+<div class="ca-add-field"><label>Mot de passe</label><input type="text" id="ag-password" placeholder="Min. 6 caract&egrave;res"></div>
+<div class="ca-add-field"><label>Code Agent</label><input type="text" id="ag-code" placeholder="ex: MBO, LCB..." style="text-transform:uppercase"></div>
+<div class="ca-add-field"><label>Nom affich&eacute;</label><input type="text" id="ag-name" placeholder="Pr&eacute;nom Nom"></div>
+<div class="ca-add-field"><label>R&ocirc;le</label><select id="ag-role"><option value="agent">Agent</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
+<div class="ca-add-field full"><label>Codes suppl&eacute;mentaires (s&eacute;par&eacute;s par virgule)</label><input type="text" id="ag-codes" placeholder="ex: IDF,NOR,EST"></div>
+</div>
+<div class="ca-add-foot">
+<button class="btn" onclick="closeAddAgent()">Annuler</button>
+<button class="btn btn-blue" onclick="saveNewAgent()">Cr&eacute;er l'agent</button>
+</div>
+</div>
+</div>
 <div class="tbl-wrap">
 <table class="admin-tbl"><thead><tr>
-<th>Code Agent</th><th>Nom</th><th>R&ocirc;le</th><th>Codes suppl.</th><th></th>
+<th>Code Agent</th><th>Nom</th><th>R&ocirc;le</th><th>Codes suppl.</th><th>Email</th><th style="width:60px"></th>
 </tr></thead><tbody id="admin-tbody"></tbody></table>
 </div>
 </div>
@@ -2199,27 +2223,31 @@ headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
 if(!res.ok){
 console.error('loadProfiles HTTP error: '+res.status);
-tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:20px">Erreur chargement profils (HTTP '+res.status+'). Vérifiez les RLS Supabase.</td></tr>';
+tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:20px">Erreur chargement profils (HTTP '+res.status+'). Vérifiez les RLS Supabase.</td></tr>';
 return;
 }
 const profiles=await res.json();
 console.log('loadProfiles: '+profiles.length+' profils');
+document.getElementById('admin-count').textContent=profiles.length+' agent(s)';
 if(!profiles.length){
-tb.innerHTML='<tr><td colspan="5" style="color:var(--gray-40);padding:20px">Aucun profil trouvé. Vérifiez la table profiles dans Supabase.</td></tr>';
+tb.innerHTML='<tr><td colspan="6" style="color:var(--gray-40);padding:20px">Aucun profil trouvé.</td></tr>';
 return;
 }
 tb.innerHTML=profiles.map(p=>{
-return '<tr><td><strong>'+esc(p.agent_code)+'</strong></td>'+
-'<td><input type="text" value="'+(p.display_name||'')+'" onchange="updateProfileField(\''+p.id+'\',\'display_name\',this.value)" style="width:160px"></td>'+
+var codesVal=(p.agent_codes&&p.agent_codes.length>0)?p.agent_codes.join(', '):'';
+return '<tr>'+
+'<td><input type="text" value="'+esc(p.agent_code||'')+'" onchange="updateProfileField(\''+p.id+'\',\'agent_code\',this.value.toUpperCase())" style="width:80px;text-transform:uppercase;font-weight:700"></td>'+
+'<td><input type="text" value="'+esc(p.display_name||'')+'" onchange="updateProfileField(\''+p.id+'\',\'display_name\',this.value)" style="width:160px"></td>'+
 '<td><select onchange="updateProfileField(\''+p.id+'\',\'role\',this.value)">'+
 '<option value="agent"'+(p.role==='agent'?' selected':'')+'>Agent</option>'+
 '<option value="manager"'+(p.role==='manager'?' selected':'')+'>Manager</option>'+
 '<option value="admin"'+(p.role==='admin'?' selected':'')+'>Admin</option>'+
 '</select></td>'+
-'<td style="font-size:11px;color:var(--gray-40)">'+(p.agent_codes&&p.agent_codes.length>0?p.agent_codes.join(', '):'-')+'</td>'+
-'<td></td></tr>';
+'<td><input type="text" value="'+esc(codesVal)+'" onchange="updateProfileCodes(\''+p.id+'\',this.value)" style="width:140px;font-size:11px" placeholder="IDF,NOR,..."></td>'+
+'<td style="font-size:11px;color:var(--gray-40)">'+esc(p.email||'-')+'</td>'+
+'<td><button class="ca-del-btn" onclick="deleteAgent(\''+p.id+'\',\''+esc(p.agent_code||'').replace(/'/g,'\\\'')+'\')" title="Supprimer">&times;</button></td></tr>';
 }).join('');
-}catch(e){console.error('Load profiles error',e);tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
+}catch(e){console.error('Load profiles error',e);tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
 
 async function updateProfileField(id,field,value){
@@ -2230,6 +2258,76 @@ body:JSON.stringify({[field]:value})
 });
 showSaved('Profil mis à jour');
 }catch(e){console.error('Profile update error',e)}
+}
+
+async function updateProfileCodes(id,value){
+var codes=value.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s);
+try{
+await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
+method:'PATCH',headers:sbHeaders(),
+body:JSON.stringify({agent_codes:codes})
+});
+showSaved('Codes mis à jour');
+}catch(e){console.error('Profile codes update error',e)}
+}
+
+function openAddAgent(){
+document.getElementById('ag-email').value='';
+document.getElementById('ag-password').value='';
+document.getElementById('ag-code').value='';
+document.getElementById('ag-name').value='';
+document.getElementById('ag-role').value='agent';
+document.getElementById('ag-codes').value='';
+document.getElementById('agent-add-ov').style.display='flex';
+document.getElementById('ag-email').focus();
+}
+function closeAddAgent(e){
+if(e&&e.target&&e.target!==document.getElementById('agent-add-ov'))return;
+document.getElementById('agent-add-ov').style.display='none';
+}
+
+async function saveNewAgent(){
+var email=document.getElementById('ag-email').value.trim();
+var password=document.getElementById('ag-password').value;
+var code=document.getElementById('ag-code').value.trim().toUpperCase();
+var name=document.getElementById('ag-name').value.trim();
+var role=document.getElementById('ag-role').value;
+var codesStr=document.getElementById('ag-codes').value.trim();
+var codes=codesStr?codesStr.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s):[];
+if(!email||!password||!code){alert('Email, mot de passe et code agent sont obligatoires.');return}
+if(password.length<6){alert('Le mot de passe doit faire au moins 6 caractères.');return}
+try{
+// Create user via Supabase Auth admin API (signup)
+var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup',{
+method:'POST',
+headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
+});
+var signData=await signRes.json();
+if(!signRes.ok||signData.error){alert('Erreur création compte: '+(signData.error?.message||signData.msg||JSON.stringify(signData)));return}
+var userId=signData.id||signData.user?.id;
+if(!userId){alert('Compte créé mais ID non récupéré. Vérifiez dans Supabase.');closeAddAgent();loadProfiles();return}
+// Update profile with all fields (trigger may have created it)
+await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId,{
+method:'PATCH',headers:sbHeaders(),
+body:JSON.stringify({agent_code:code,display_name:name,role:role,agent_codes:codes,email:email})
+});
+closeAddAgent();
+showSaved('Agent '+code+' créé avec succès');
+await loadProfiles();
+}catch(e){console.error('Create agent error',e);alert('Erreur: '+e.message)}
+}
+
+async function deleteAgent(id,code){
+if(!confirm('Supprimer l\'agent '+code+' ? Cette action est irréversible.'))return;
+try{
+// Delete profile
+await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
+method:'DELETE',headers:sbHeaders()
+});
+showSaved('Agent '+code+' supprimé');
+await loadProfiles();
+}catch(e){console.error('Delete agent error',e);alert('Erreur: '+e.message)}
 }
 
 // Check existing session on page load
