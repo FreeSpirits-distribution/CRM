@@ -1912,6 +1912,14 @@ document.getElementById('loading-screen').style.display='flex';
 // Load data
 const ok=await loadFromSupabase();
 if(ok){
+// Apply role visibility BEFORE showing app
+document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
+document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
+document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
+// Force CRM tab active
+switchTab('crm');
 document.getElementById('loading-screen').style.display='none';
 document.getElementById('app-content').style.display='block';
 init();
@@ -2298,21 +2306,38 @@ var codes=codesStr?codesStr.split(',').map(s=>s.trim().toUpperCase()).filter(s=>
 if(!email||!password||!code){alert('Email, mot de passe et code agent sont obligatoires.');return}
 if(password.length<6){alert('Le mot de passe doit faire au moins 6 caractères.');return}
 try{
-// Create user via Supabase Auth admin API (signup)
+// Create user via Supabase Auth signup
 var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup',{
 method:'POST',
 headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
 });
 var signData=await signRes.json();
-if(!signRes.ok||signData.error){alert('Erreur création compte: '+(signData.error?.message||signData.msg||JSON.stringify(signData)));return}
+console.log('Signup response:',signData);
+if(signData.error){alert('Erreur création compte: '+(signData.error.message||JSON.stringify(signData.error)));return}
+// Extract user ID from response (handles both confirmed and unconfirmed)
 var userId=signData.id||signData.user?.id;
-if(!userId){alert('Compte créé mais ID non récupéré. Vérifiez dans Supabase.');closeAddAgent();loadProfiles();return}
-// Update profile with all fields (trigger may have created it)
-await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId,{
+if(!userId&&signData.identities!==undefined){userId=signData.id}
+if(!userId){alert('Compte créé mais ID non récupéré. Vérifiez dans Supabase Authentication.');closeAddAgent();loadProfiles();return}
+// Wait a moment for trigger to fire, then upsert profile
+await new Promise(r=>setTimeout(r,1000));
+// Try PATCH first (trigger may have created profile)
+var patchRes=await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId,{
 method:'PATCH',headers:sbHeaders(),
 body:JSON.stringify({agent_code:code,display_name:name,role:role,agent_codes:codes,email:email})
 });
+// If PATCH didn't match any row, INSERT the profile
+if(patchRes.ok){
+var patchText=await patchRes.text();
+if(!patchText||patchText==='[]'){
+console.log('Profile not found after trigger, inserting manually...');
+await fetch(SUPABASE_URL+'/rest/v1/profiles',{
+method:'POST',
+headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),
+body:JSON.stringify({id:userId,agent_code:code,display_name:name,role:role,agent_codes:codes,email:email})
+});
+}
+}
 closeAddAgent();
 showSaved('Agent '+code+' créé avec succès');
 await loadProfiles();
@@ -2383,6 +2408,13 @@ document.getElementById('login-screen').style.display='none';
 document.getElementById('loading-screen').style.display='flex';
 const ok=await loadFromSupabase();
 if(ok){
+// Apply role visibility BEFORE showing app
+document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
+document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
+document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
+switchTab('crm');
 document.getElementById('loading-screen').style.display='none';
 document.getElementById('app-content').style.display='block';
 init();
