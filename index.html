@@ -503,7 +503,7 @@ input,select,textarea{font-size:16px!important}
 </div>
 <div class="tbl-wrap">
 <table class="admin-tbl"><thead><tr>
-<th>Code Agent</th><th>Nom</th><th>R&ocirc;le</th><th>Codes suppl.</th><th>Email</th><th style="width:60px"></th>
+<th>Code Agent</th><th>Nom</th><th>R&ocirc;le</th><th>Codes suppl.</th><th>Email de connexion</th><th>Mot de passe</th><th style="width:60px"></th>
 </tr></thead><tbody id="admin-tbody"></tbody></table>
 </div>
 </div>
@@ -2223,14 +2223,14 @@ headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
 if(!res.ok){
 console.error('loadProfiles HTTP error: '+res.status);
-tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:20px">Erreur chargement profils (HTTP '+res.status+'). Vérifiez les RLS Supabase.</td></tr>';
+tb.innerHTML='<tr><td colspan="8" style="color:var(--red);padding:20px">Erreur chargement profils (HTTP '+res.status+'). Vérifiez les RLS Supabase.</td></tr>';
 return;
 }
 const profiles=await res.json();
 console.log('loadProfiles: '+profiles.length+' profils');
 document.getElementById('admin-count').textContent=profiles.length+' agent(s)';
 if(!profiles.length){
-tb.innerHTML='<tr><td colspan="6" style="color:var(--gray-40);padding:20px">Aucun profil trouvé.</td></tr>';
+tb.innerHTML='<tr><td colspan="8" style="color:var(--gray-40);padding:20px">Aucun profil trouvé.</td></tr>';
 return;
 }
 tb.innerHTML=profiles.map(p=>{
@@ -2244,10 +2244,11 @@ return '<tr>'+
 '<option value="admin"'+(p.role==='admin'?' selected':'')+'>Admin</option>'+
 '</select></td>'+
 '<td><input type="text" value="'+esc(codesVal)+'" onchange="updateProfileCodes(\''+p.id+'\',this.value)" style="width:140px;font-size:11px" placeholder="IDF,NOR,..."></td>'+
-'<td style="font-size:11px;color:var(--gray-40)">'+esc(p.email||'-')+'</td>'+
+'<td><input type="email" value="'+esc(p.email||'')+'" onchange="updateProfileField(\''+p.id+'\',\'email\',this.value)" style="width:200px;font-size:12px" placeholder="agent@email.com"></td>'+
+'<td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;white-space:nowrap" onclick="resetAgentPassword(\''+esc(p.email||'').replace(/'/g,'\\\'')+'\',\''+esc(p.agent_code||'').replace(/'/g,'\\\'')+'\')" title="Envoyer un lien de réinitialisation par email">&#128274; Réinit. MDP</button></td>'+
 '<td><button class="ca-del-btn" onclick="deleteAgent(\''+p.id+'\',\''+esc(p.agent_code||'').replace(/'/g,'\\\'')+'\')" title="Supprimer">&times;</button></td></tr>';
 }).join('');
-}catch(e){console.error('Load profiles error',e);tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
+}catch(e){console.error('Load profiles error',e);tb.innerHTML='<tr><td colspan="8" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
 
 async function updateProfileField(id,field,value){
@@ -2328,6 +2329,24 @@ method:'DELETE',headers:sbHeaders()
 showSaved('Agent '+code+' supprimé');
 await loadProfiles();
 }catch(e){console.error('Delete agent error',e);alert('Erreur: '+e.message)}
+}
+
+async function resetAgentPassword(email,code){
+if(!email){alert('Aucun email enregistré pour cet agent. Renseignez d\'abord son email.');return}
+if(!confirm('Envoyer un lien de réinitialisation de mot de passe à '+email+' ('+code+') ?'))return;
+try{
+var res=await fetch(SUPABASE_URL+'/auth/v1/recover',{
+method:'POST',
+headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+body:JSON.stringify({email:email})
+});
+if(res.ok){
+showSaved('Lien de réinitialisation envoyé à '+email);
+}else{
+var data=await res.json();
+alert('Erreur: '+(data.error_description||data.msg||JSON.stringify(data)));
+}
+}catch(e){console.error('Reset password error',e);alert('Erreur: '+e.message)}
 }
 
 // Check existing session on page load
