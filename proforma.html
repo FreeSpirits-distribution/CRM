@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proforma — Free Spirits Distribution</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--bg:#faf5ef;--navy:#2c2420;--copper:#b87333;--copper-h:#9a5f2a;--green:#6b8f5e;--red:#c45c5c;--cream:#f5f0ea;--border:#e0d6cc;--muted:#b8a99a;--text:#3d3430;--text-light:#7a6e63;--card:#fff;--radius:8px;--shadow:0 2px 8px rgba(44,36,32,.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.nav{background:var(--navy);color:#fff;display:flex;align-items:center;height:48px;padding:0 20px;position:sticky;top:0;z-index:100}
+.nav-logo{font-weight:800;font-size:18px;letter-spacing:-.5px}.nav-logo i{font-style:italic}.nav-logo span{color:var(--copper);font-weight:400}
+.nav-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.nav-right a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;transition:.15s}
+.nav-right a:hover{color:#fff;background:rgba(255,255,255,.1)}
+.container{max-width:1200px;margin:0 auto;padding:20px 24px}
+h2{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--copper);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--cream)}
+label{display:block;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;background:#fff;transition:border .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--copper)}
+textarea{min-height:60px;resize:vertical}
+input[readonly]{background:var(--cream);color:var(--text-light)}
+.btn{padding:9px 18px;border-radius:var(--radius);border:none;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-copper{background:var(--copper);color:#fff}.btn-copper:hover{background:var(--copper-h)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#5a7d4e}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#a84a4a}
+.btn-ghost{background:transparent;color:var(--text-light);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--copper);color:var(--copper)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--cream);padding:10px 8px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;color:var(--text-light);border-bottom:2px solid var(--border);white-space:nowrap}
+tbody td{padding:8px;border-bottom:1px solid var(--cream);vertical-align:middle}
+tbody tr:hover{background:#f5efe6}
+tfoot td{padding:10px 8px;font-weight:800;border-top:2px solid var(--copper);color:var(--navy)}
+.del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}.del-btn:hover{background:#fde8e8}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:16px}
+.sum-box{background:var(--cream);border-radius:var(--radius);padding:14px;text-align:center;border-left:3px solid var(--copper)}
+.sum-box.green{border-left-color:var(--green)}
+.sum-val{font-size:20px;font-weight:800;color:var(--navy)}.sum-lbl{font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.product-info{display:flex;gap:8px;align-items:center;margin-top:6px;padding:8px 12px;background:var(--cream);border-radius:var(--radius);font-size:12px;color:var(--text-light)}
+.product-info .pi-name{font-weight:700;color:var(--text)}
+.product-info .pi-cat{background:var(--copper);color:#fff;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.hidden{display:none}
+@media(max-width:768px){.grid2,.grid3,.summary-grid{grid-template-columns:1fr}.container{padding:12px}}
+.client-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:250px;overflow-y:auto;z-index:50}
+.client-dropdown.hidden{display:none}
+.client-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--cream);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.client-item:hover{background:var(--cream)}
+.client-item .ci-name{font-weight:700;color:var(--text)}.client-item .ci-details{font-size:11px;color:var(--text-light)}
+.client-item .ci-badge{background:var(--copper);color:#fff;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700}
+@media print{.nav,.actions,.no-print{display:none!important}.container{padding:0;max-width:100%}}
+</style>
+</head>
+<body>
+<div class="nav">
+<div class="nav-logo"><i>free</i><span>SPIRITS</span> — Proforma</div>
+<div class="nav-right">
+<a href="index.html">&#8592; Retour CRM</a>
+</div>
+</div>
+
+<div class="container">
+<h2>Editeur de Proforma</h2>
+
+<!-- CLIENT INFO -->
+<div class="card">
+<h3>Informations Client</h3>
+<div class="grid3">
+<div class="full" style="position:relative">
+<label>Rechercher un client CRM</label>
+<div style="display:flex;gap:8px;align-items:center">
+<input type="text" id="pf-client-search" placeholder="Tapez un nom, une enseigne, une ville..." oninput="searchClients(this.value)" autocomplete="off" style="flex:1">
+<span id="pf-crm-status" style="font-size:11px;white-space:nowrap"></span>
+<button class="btn btn-ghost btn-sm" id="pf-login-btn" onclick="showProformaLogin()" style="display:none">Connexion CRM</button>
+</div>
+<div id="pf-client-dropdown" class="client-dropdown hidden"></div>
+<div id="pf-login-box" class="hidden" style="margin-top:8px;padding:12px;background:var(--cream);border-radius:var(--radius)">
+<div style="display:flex;gap:8px;align-items:flex-end">
+<div style="flex:1"><label>Email</label><input type="email" id="pf-login-email" placeholder="votre@email.com"></div>
+<div style="flex:1"><label>Mot de passe</label><input type="password" id="pf-login-pwd" placeholder="********" onkeydown="if(event.key==='Enter')doProformaLogin()"></div>
+<button class="btn btn-copper btn-sm" onclick="doProformaLogin()">Connexion</button>
+</div>
+<div id="pf-login-msg" class="hint" style="margin-top:4px"></div>
+</div>
+</div>
+<div><label>Nom / Enseigne</label><input type="text" id="pf-client" placeholder="MAISON DUPONT"></div>
+<div><label>N&deg; Client (ID)</label><input type="text" id="pf-noclient" placeholder="ex: 1545"></div>
+<div><label>Date</label><input type="date" id="pf-date"></div>
+<div class="full"><label>Adresse</label><input type="text" id="pf-adresse" placeholder="12 rue de la Paix, 75002 Paris"></div>
+<div><label>Ville</label><input type="text" id="pf-ville" placeholder="Paris"></div>
+<div><label>CP</label><input type="text" id="pf-cp" placeholder="75002"></div>
+<div><label>T&eacute;l&eacute;phone</label><input type="tel" id="pf-tel" placeholder="01 23 45 67 89"></div>
+<div><label>Email</label><input type="email" id="pf-email" placeholder="contact@client.fr"></div>
+<div><label>N&deg; Proforma</label><input type="text" id="pf-numero" placeholder="PF-2026-001"></div>
+</div>
+</div>
+
+<!-- ADD PRODUCT LINE -->
+<div class="card no-print">
+<h3>Ajouter un produit</h3>
+<div class="grid3">
+<div class="full"><label>Rechercher un produit</label><input type="text" id="pf-search" list="pf-datalist" placeholder="Tapez un nom, une référence ou une catégorie..." oninput="onProductSearch(this.value)"><datalist id="pf-datalist"></datalist></div>
+</div>
+<div id="pf-product-info" class="hidden"></div>
+<div class="grid3" style="margin-top:10px">
+<div><label>Quantit&eacute; (bouteilles)</label><input type="number" id="pf-qty" min="1" step="1" value="6" onchange="updateQtyHint()"></div>
+<div><label>Prix HDHT unitaire</label><input type="number" id="pf-hdht" step="0.01" min="0"></div>
+<div><label>Remise %</label><input type="number" id="pf-remise" min="0" max="100" step="0.5" value="0"></div>
+<div style="display:flex;align-items:center;gap:8px;padding-top:18px"><input type="checkbox" id="pf-animation" style="width:auto;accent-color:var(--copper)"><label for="pf-animation" style="text-transform:none;font-weight:600;color:var(--text);margin:0;cursor:pointer">Animation (-25% HDHT sur 1 btl)</label></div>
+</div>
+<div id="pf-qty-hint" class="hint"></div>
+<div class="actions">
+<button class="btn btn-copper" onclick="addLine()">&#10010; Ajouter au bon</button>
+<button class="btn btn-ghost" onclick="clearLines()">Vider le bon</button>
+</div>
+</div>
+
+<!-- ORDER TABLE -->
+<div class="card">
+<h3>Lignes de la proforma</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr>
+<th>R&eacute;f.</th><th>Produit</th><th>Cat.</th><th>Vol.</th><th>PCB</th>
+<th>Qt&eacute;</th><th>HDHT Unit.</th><th>Animation</th><th>HDHT Net</th>
+<th>Droits</th><th>HT Unit.</th><th>Total HT</th><th class="no-print"></th>
+</tr></thead>
+<tbody id="pf-lines"></tbody>
+<tfoot id="pf-tfoot"></tfoot>
+</table>
+</div>
+<div id="pf-empty" class="empty-state">Aucun produit ajout&eacute;. Utilisez la recherche ci-dessus.</div>
+<div class="summary-grid" id="pf-summary" style="display:none">
+<div class="sum-box"><div class="sum-val" id="s-hdht">0</div><div class="sum-lbl">Total HDHT</div></div>
+<div class="sum-box"><div class="sum-val" id="s-droits">0</div><div class="sum-lbl">Droits + CSS</div></div>
+<div class="sum-box"><div class="sum-val" id="s-ht">0</div><div class="sum-lbl">Total HT</div></div>
+<div class="sum-box green"><div class="sum-val" id="s-ttc">0</div><div class="sum-lbl">Total TTC (20%)</div></div>
+</div>
+</div>
+
+<!-- CONDITIONS -->
+<div class="card">
+<h3>Conditions</h3>
+<div class="grid2">
+<div><label>Conditions de paiement</label><select id="pf-paiement">
+<option value="prelevement30fdm" selected>Pr&eacute;l&egrave;vement 30 jours fin de mois</option>
+<option value="virement30fdm">Virement 30 jours fin de mois</option>
+<option value="comptant">Comptant</option>
+<option value="45j">Paiement &agrave; 45 jours</option>
+</select></div>
+<div><label>Validit&eacute; de l'offre</label><input type="text" id="pf-validite" value="30 jours"></div>
+<div><label>Franco de port</label><select id="pf-franco">
+<option value="oui">Franco (livraison incluse)</option>
+<option value="non">Port en sus</option>
+<option value="mini">Franco à partir de 500€ HT</option>
+</select></div>
+<div><label>Agent commercial</label><input type="text" id="pf-agent" value="MBO"></div>
+<div class="full"><label>Notes / Conditions particulières</label><textarea id="pf-notes" placeholder="Animation, remise exceptionnelle, conditions spécifiques..."></textarea></div>
+</div>
+</div>
+
+<!-- EXPORT -->
+<div class="card no-print">
+<h3>Export</h3>
+<div class="actions">
+<button class="btn btn-copper" onclick="exportPDF()">&#128196; Générer PDF</button>
+<button class="btn btn-ghost" onclick="window.print()">&#128424; Imprimer</button>
+<button class="btn btn-ghost" onclick="exportCSV()">&#128196; Export CSV</button>
+<span id="pf-ca-btn"><button class="btn btn-green" onclick="saveToCA()">&#10004; Enregistrer au CA</button></span>
+</div>
+<div id="pf-save-msg" class="hint" style="margin-top:6px"></div>
+</div>
+
+</div>
+
+<script>
+let CATALOG = []; // Loaded from Supabase
+
+// === SUPABASE CONFIG ===
+const SUPABASE_URL = "https://ajukuwrznhfsfdeejdkl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdWt1d3J6bmhmc2ZkZWVqZGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwOTM4MzgsImV4cCI6MjA5MDY2OTgzOH0.fHCVO12OutfO1PNM97s3jRVjFVPlGLl7wBmZA4gbM7s";
+let sbToken = null;
+let crmContacts = [];
+let userRole = '';
+
+let lines = [];
+let selectedProduct = null;
+
+async function loadCatalog(){
+  try{
+    var headers={'apikey':SUPABASE_KEY};
+    if(sbToken)headers['Authorization']='Bearer '+sbToken;
+    var res=await fetch(SUPABASE_URL+'/rest/v1/produits?select=*&order=category,name',{headers:headers});
+    if(res.ok){
+      CATALOG=await res.json();
+      console.log('Catalogue: '+CATALOG.length+' produits chargés depuis Supabase');
+    }else{console.error('Catalogue load error:',res.status)}
+  }catch(e){console.error('Catalogue fetch error:',e)}
+  buildDatalist();
+}
+
+// Init
+(async function(){
+  document.getElementById('pf-date').value = new Date().toISOString().split('T')[0];
+  // Load CRM token BEFORE catalog so auth headers are available
+  sbToken = localStorage.getItem('sb_token');
+  await loadCatalog();
+  if(sbToken){
+    // Validate token first
+    try{
+      const vRes = await fetch(SUPABASE_URL+'/auth/v1/user',{
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}
+      });
+      if(!vRes.ok){
+        // Token expired or invalid — clear and show login
+        console.warn('Token invalide ou expiré, suppression');
+        localStorage.removeItem('sb_token');
+        sbToken=null;
+        updateCRMStatus(false);
+      } else {
+        // Fetch user role from profiles
+        try{
+          const uData=await vRes.json();
+          const pRes=await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+uData.id+'&select=role',{
+            headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}
+          });
+          if(pRes.ok){const pArr=await pRes.json();if(pArr.length)userRole=pArr[0].role||'agent';}
+        }catch(e){console.warn('Could not fetch role',e)}
+        await loadCRMContacts();
+        updateCRMStatus(true);
+        updateCAButton();
+      }
+    }catch(e){
+      console.error('Token validation error',e);
+      sbToken=null;
+      updateCRMStatus(false);
+    }
+  } else {
+    updateCRMStatus(false);
+  }
+  // Close dropdown on click outside
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('#pf-client-search') && !e.target.closest('#pf-client-dropdown')){
+      document.getElementById('pf-client-dropdown').className='client-dropdown hidden';
+    }
+  });
+})();
+
+async function loadCRMContacts(){
+  try{
+    let all=[];let offset=0;
+    while(true){
+      const res=await fetch(SUPABASE_URL+'/rest/v1/contacts?select=*&order=nom.asc&offset='+offset+'&limit=1000',{
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}
+      });
+      if(!res.ok){
+        console.error('CRM contacts fetch error: HTTP '+res.status);
+        if(res.status===401||res.status===403){
+          localStorage.removeItem('sb_token');
+          sbToken=null;
+          crmContacts=[];
+          updateCRMStatus(false);
+          return;
+        }
+        break;
+      }
+      const batch=await res.json();
+      all=all.concat(batch);
+      if(batch.length<1000) break;
+      offset+=1000;
+    }
+    crmContacts=all;
+    console.log('CRM: '+crmContacts.length+' contacts charg\u00e9s');
+  }catch(e){console.error('CRM load error',e);crmContacts=[];updateCRMStatus(false)}
+}
+
+function searchClients(val){
+  const dd=document.getElementById('pf-client-dropdown');
+  if(!val||val.length<2||!crmContacts.length){dd.className='client-dropdown hidden';return;}
+  const v=val.toLowerCase();
+  const results=crmContacts.filter(function(c){
+    return (c.nom&&c.nom.toLowerCase().includes(v))||
+           (c.enseigne&&c.enseigne.toLowerCase().includes(v))||
+           (c.ville&&c.ville.toLowerCase().includes(v))||
+           (c.email&&c.email.toLowerCase().includes(v));
+  }).slice(0,15);
+  if(!results.length){dd.className='client-dropdown hidden';return;}
+  dd.className='client-dropdown';
+  dd.innerHTML=results.map(function(c,i){
+    return '<div class="client-item" onclick="selectClient('+i+',this)" data-idx="'+i+'">'+
+      '<div><span class="ci-name">'+(c.enseigne||c.nom||'')+'</span><br>'+
+      '<span class="ci-details">'+(c.ville||'')+' '+(c.departement||'')+' — '+(c.email||'')+'</span></div>'+
+      '<span class="ci-badge">'+(c.agent||'')+'</span></div>';
+  }).join('');
+  dd._results=results;
+}
+
+function selectClient(idx,el){
+  const dd=document.getElementById('pf-client-dropdown');
+  const c=dd._results[idx];
+  if(!c)return;
+  document.getElementById('pf-client').value=c.enseigne||c.nom||'';
+  document.getElementById('pf-noclient').value=c.id||'';
+  document.getElementById('pf-adresse').value=c.adresse||'';
+  document.getElementById('pf-ville').value=c.ville||'';
+  document.getElementById('pf-cp').value=c.cp||'';
+  document.getElementById('pf-tel').value=c.port||c.tel||'';
+  document.getElementById('pf-email').value=c.email||'';
+  document.getElementById('pf-client-search').value=c.enseigne||c.nom||'';
+  dd.className='client-dropdown hidden';
+}
+
+function buildDatalist(){
+  const dl = document.getElementById('pf-datalist');
+  dl.innerHTML = '';
+  CATALOG.forEach(function(p){
+    if(p.dispo==='RUPTURE')return; // Rupture définitive = masqué
+    const o = document.createElement('option');
+    o.value = p.name;
+    var lbl = (p.ref ? '['+p.ref+'] ' : '') + p.category + ' — ' + fmt(p.prix_ht) + ' HT';
+    if(p.dispo==='INDISPONIBLE') lbl += ' ⚠ INDISPONIBLE';
+    o.label = lbl;
+    dl.appendChild(o);
+  });
+}
+
+function onProductSearch(val){
+  if(!val) { selectedProduct=null; hideProductInfo(); return; }
+  const v = val.toLowerCase();
+  const p = CATALOG.find(function(x){
+    return x.name.toLowerCase() === v || (x.ref && x.ref === v);
+  });
+  if(!p){
+    const partial = CATALOG.find(function(x){ return x.name.toLowerCase().includes(v) || (x.ref && x.ref.includes(v)) || x.category.toLowerCase().includes(v); });
+    if(partial && partial.name.toLowerCase().startsWith(v)){selectProduct(partial);return;}
+    selectedProduct=null; hideProductInfo(); return;
+  }
+  selectProduct(p);
+}
+
+function selectProduct(p){
+  selectedProduct = p;
+  document.getElementById('pf-hdht').value = p.hdht;
+  document.getElementById('pf-qty').value = p.pcb;
+  updateQtyHint();
+  const info = document.getElementById('pf-product-info');
+  info.className = 'product-info';
+  var dispoTag='';
+  if(p.dispo==='INDISPONIBLE')dispoTag=' <span style="background:var(--orange);color:#fff;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700">INDISPONIBLE</span>';
+  if(p.dispo==='RUPTURE')dispoTag=' <span style="background:var(--red);color:#fff;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700">RUPTURE DÉFINITIVE</span>';
+  info.innerHTML = '<span class="pi-cat">'+esc(p.category)+'</span> '+
+    '<span class="pi-name">'+esc(p.name)+'</span> — '+
+    (p.ref ? 'R\u00e9f: '+esc(p.ref)+' — ' : '')+
+    (p.vol ? p.vol+'cl — ' : '')+
+    (p.tav ? p.tav+'% — ' : '')+
+    'PCB: '+p.pcb+' — HDHT: '+fmt(p.hdht)+' — HT: '+fmt(p.prix_ht)+' — PVC: '+fmt(p.pvc_ttc)+dispoTag;
+}
+
+function hideProductInfo(){ document.getElementById('pf-product-info').className='hidden'; }
+
+function updateQtyHint(){
+  if(!selectedProduct) return;
+  const qty = parseInt(document.getElementById('pf-qty').value)||0;
+  const pcb = selectedProduct.pcb;
+  const hint = document.getElementById('pf-qty-hint');
+  if(qty % pcb !== 0){
+    const next = Math.ceil(qty/pcb)*pcb;
+    hint.innerHTML = '\u26a0\ufe0f PCB = '+pcb+'. Quantit\u00e9 sugg\u00e9r\u00e9e : '+next;
+    hint.style.color = 'var(--red)';
+  } else {
+    hint.innerHTML = '\u2713 '+qty+' bouteilles = '+(qty/pcb)+' colis de '+pcb;
+    hint.style.color = 'var(--green)';
+  }
+}
+
+function addLine(){
+  if(!selectedProduct){alert('Sélectionnez un produit.');return;}
+  if(selectedProduct.dispo==='RUPTURE'){alert('Ce produit est en rupture définitive et ne peut pas être commandé.');return;}
+  if(selectedProduct.dispo==='INDISPONIBLE'){if(!confirm('Ce produit est actuellement indisponible. Ajouter quand même à la proforma ?'))return;}
+  const qty = parseInt(document.getElementById('pf-qty').value)||0;
+  if(qty<1){alert('Quantité invalide.');return;}
+  const hdht = parseFloat(document.getElementById('pf-hdht').value)||0;
+  const animation = document.getElementById('pf-animation').checked;
+
+  // Check duplicate
+  if(lines.some(function(l){return l.name===selectedProduct.name})){
+    if(!confirm('Ce produit est déjà dans le bon. Ajouter quand même ?')) return;
+  }
+
+  const droits_unit = selectedProduct.droits + selectedProduct.css;
+
+  // Animation : 1 btl par carton à -25% HDHT
+  const anim_qty = animation ? 1 : 0;
+  const normal_qty = qty - anim_qty;
+  const hdht_anim = Math.round(hdht * 0.75 * 100) / 100;
+
+  const ht_unit_normal = hdht + droits_unit;
+  const ht_unit_anim = hdht_anim + droits_unit;
+
+  const total_hdht = Math.round((normal_qty * hdht + anim_qty * hdht_anim) * 100) / 100;
+  const total_ht = Math.round((normal_qty * ht_unit_normal + anim_qty * ht_unit_anim) * 100) / 100;
+
+  lines.push({
+    ref: selectedProduct.ref,
+    name: selectedProduct.name,
+    category: selectedProduct.category,
+    vol: selectedProduct.vol,
+    pcb: selectedProduct.pcb,
+    qty: qty,
+    hdht: hdht,
+    animation: animation,
+    anim_qty: anim_qty,
+    hdht_anim: hdht_anim,
+    hdht_net: hdht,
+    droits: droits_unit,
+    ht_unit: Math.round(ht_unit_normal*100)/100,
+    total_ht: total_ht,
+    total_hdht: total_hdht
+  });
+
+  renderLines();
+  // Reset
+  document.getElementById('pf-search').value='';
+  document.getElementById('pf-remise').value='0';
+  document.getElementById('pf-animation').checked=false;
+  selectedProduct=null;
+  hideProductInfo();
+  document.getElementById('pf-qty-hint').innerHTML='';
+}
+
+function removeLine(i){ lines.splice(i,1); renderLines(); }
+function clearLines(){ if(lines.length && confirm('Vider le bon ?')){ lines=[]; renderLines(); }}
+
+function renderLines(){
+  const tb = document.getElementById('pf-lines');
+  const tf = document.getElementById('pf-tfoot');
+  const empty = document.getElementById('pf-empty');
+  const summary = document.getElementById('pf-summary');
+  
+  if(!lines.length){
+    tb.innerHTML=''; tf.innerHTML='';
+    empty.style.display='block'; summary.style.display='none';
+    return;
+  }
+  empty.style.display='none'; summary.style.display='grid';
+  
+  let totHDHT=0, totDroits=0, totHT=0, totQty=0;
+  
+  tb.innerHTML = lines.map(function(l,i){
+    totHDHT += l.total_hdht;
+    totDroits += l.droits * l.qty;
+    totHT += l.total_ht;
+    totQty += l.qty;
+    return '<tr>'+
+      '<td>'+esc(l.ref)+'</td>'+
+      '<td style="font-weight:600">'+esc(l.name)+'</td>'+
+      '<td><span style="background:var(--cream);padding:1px 6px;border-radius:8px;font-size:11px">'+esc(l.category)+'</span></td>'+
+      '<td>'+esc(l.vol||'')+'</td>'+
+      '<td>'+l.pcb+'</td>'+
+      '<td style="font-weight:700">'+l.qty+'</td>'+
+      '<td>'+fmt(l.hdht)+'</td>'+
+      '<td>'+(l.animation?'<span style="color:var(--green);font-weight:600">Anim: 1 btl -25%</span>':'—')+'</td>'+
+      '<td>'+fmt(l.animation ? Math.round((l.hdht*(l.qty-l.anim_qty)+l.hdht_anim*l.anim_qty)/l.qty*100)/100 : l.hdht)+'</td>'+
+      '<td>'+fmt(l.droits)+'</td>'+
+      '<td>'+fmt(l.ht_unit)+'</td>'+
+      '<td style="font-weight:700;text-align:right">'+fmt(l.total_ht)+'</td>'+
+      '<td class="no-print"><button class="del-btn" onclick="removeLine('+i+')">&times;</button></td>'+
+    '</tr>';
+  }).join('');
+  
+  const tva = Math.round(totHT * 0.20 * 100)/100;
+  const ttc = Math.round((totHT + tva)*100)/100;
+  
+  tf.innerHTML = '<tr><td colspan="5" style="text-align:right">TOTAUX</td>'+
+    '<td style="font-weight:700">'+totQty+'</td>'+
+    '<td></td><td></td><td>'+fmt(totHDHT)+'</td>'+
+    '<td>'+fmt(totDroits)+'</td><td></td>'+
+    '<td style="text-align:right">'+fmt(totHT)+'</td><td class="no-print"></td></tr>';
+  
+  document.getElementById('s-hdht').textContent = fmt(totHDHT);
+  document.getElementById('s-droits').textContent = fmt(Math.round(totDroits*100)/100);
+  document.getElementById('s-ht').textContent = fmt(totHT);
+  document.getElementById('s-ttc').textContent = fmt(ttc);
+}
+
+function fmt(n){ return (n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'; }
+function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
+
+// === PDF EXPORT ===
+function exportPDF(){
+  if(!lines.length){alert('Le bon est vide.');return;}
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF('p','mm','a4');
+  const w = doc.internal.pageSize.getWidth();
+  const copper = [184,115,51];
+  const navy = [44,36,32];
+  const gray = [122,110,99];
+  
+  // Header
+  doc.setFillColor(44,36,32);
+  doc.rect(0,0,w,28,"F");
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(18);
+  doc.setFont('helvetica','bolditalic');
+  doc.text('free',15,16);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(184,115,51);
+  doc.text('SPIRITS',32,16);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.setTextColor(200,200,200);
+  doc.text('DISTRIBUTION',15,23);
+  
+  // Proforma title
+  doc.setTextColor(184,115,51);
+  doc.setFontSize(9);
+  doc.text('PROFORMA', w-15, 12, {align:'right'});
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(10);
+  const pfNum = document.getElementById('pf-numero').value || 'PF-'+new Date().toISOString().slice(0,10);
+  doc.text(pfNum, w-15, 18, {align:'right'});
+  const pfDate = document.getElementById('pf-date').value;
+  doc.setFontSize(8);
+  doc.text(pfDate ? new Date(pfDate).toLocaleDateString('fr-FR') : '', w-15, 23, {align:'right'});
+  
+  let y = 36;
+  
+  // Client info
+  doc.setFillColor(245,240,234);
+  doc.roundedRect(12,y,w-24,28,2,2,'F');
+  doc.setTextColor(...navy);
+  doc.setFontSize(10);
+  doc.setFont('helvetica','bold');
+  const clientName = document.getElementById('pf-client').value || 'Client';
+  doc.text(clientName, 16, y+8);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...gray);
+  const noClient = document.getElementById('pf-noclient').value;
+  if(noClient) doc.text('N\u00b0 Client: '+noClient, 16, y+14);
+  const adresse = document.getElementById('pf-adresse').value;
+  const ville = document.getElementById('pf-ville').value;
+  const cp = document.getElementById('pf-cp').value;
+  const adresseFull = [adresse, [cp,ville].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  if(adresseFull) doc.text(adresseFull, 16, y+20);
+  const tel = document.getElementById('pf-tel').value;
+  const email = document.getElementById('pf-email').value;
+  let contactLine = [tel,email].filter(Boolean).join(' \u2014 ');
+  if(contactLine) doc.text(contactLine, 16, y+25);
+  
+  const agent = document.getElementById('pf-agent').value;
+  doc.text('Agent: '+(agent||''), w-16, y+8, {align:'right'});
+  
+  y += 34;
+  
+  // Table
+  const tableData = lines.map(function(l){
+    return [
+      l.ref||'',
+      l.name,
+      l.category,
+      l.vol||'',
+      l.pcb,
+      l.qty,
+      n2(l.hdht),
+      l.animation?'1 btl -25%':'',
+      n2(l.animation ? Math.round((l.hdht*(l.qty-l.anim_qty)+l.hdht_anim*l.anim_qty)/l.qty*100)/100 : l.hdht),
+      n2(l.droits),
+      n2(l.ht_unit),
+      n2(l.total_ht)
+    ];
+  });
+  
+  let totHDHT=0, totDroits=0, totHT=0, totQty=0;
+  lines.forEach(function(l){ totHDHT+=l.total_hdht; totDroits+=l.droits*l.qty; totHT+=l.total_ht; totQty+=l.qty; });
+  const tva = Math.round(totHT*0.20*100)/100;
+  const ttc = Math.round((totHT+tva)*100)/100;
+  
+  doc.autoTable({
+    startY: y,
+    head: [['Ref','Produit','Cat.','Vol.','PCB','Qte','HDHT','Anim.','HDHT Net','Droits','HT Unit.','Total HT']],
+    body: tableData,
+    foot: [['','TOTAUX','','','',totQty,'','',n2(totHDHT),n2(totDroits),'',n2(totHT)]],
+    styles:{fontSize:7,cellPadding:2,textColor:navy,lineColor:[224,214,204],lineWidth:0.2},
+    headStyles:{fillColor:copper,textColor:[255,255,255],fontStyle:'bold',fontSize:7},
+    footStyles:{fillColor:[245,240,234],textColor:navy,fontStyle:'bold',fontSize:8},
+    alternateRowStyles:{fillColor:[252,249,245]},
+    columnStyles:{
+      0:{cellWidth:10},1:{cellWidth:42},2:{cellWidth:16},3:{cellWidth:10},4:{cellWidth:9},
+      5:{cellWidth:9,halign:'center',fontStyle:'bold'},6:{halign:'right'},7:{halign:'center'},
+      8:{halign:'right'},9:{halign:'right'},10:{halign:'right'},11:{halign:'right',fontStyle:'bold'}
+    },
+    margin:{left:12,right:12}
+  });
+  
+  y = doc.lastAutoTable.finalY + 8;
+  
+  // Totals box
+  const boxW = 70;
+  const boxX = w - 12 - boxW;
+  doc.setFillColor(245,240,234);
+  doc.roundedRect(boxX, y, boxW, 32, 2, 2, 'F');
+  doc.setFontSize(8);
+  doc.setTextColor(...gray);
+  doc.text('Total HT:', boxX+4, y+8);
+  doc.text('TVA (20%):', boxX+4, y+15);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...navy);
+  doc.text(n2(totHT)+' \u20ac', boxX+boxW-4, y+8, {align:'right'});
+  doc.text(n2(tva)+' \u20ac', boxX+boxW-4, y+15, {align:'right'});
+  doc.setDrawColor(...copper);
+  doc.line(boxX+4, y+19, boxX+boxW-4, y+19);
+  doc.setFontSize(11);
+  doc.setTextColor(...copper);
+  doc.text('Total TTC:', boxX+4, y+27);
+  doc.text(n2(ttc)+' \u20ac', boxX+boxW-4, y+27, {align:'right'});
+  
+  // Conditions (left side)
+  doc.setFontSize(7);
+  doc.setTextColor(...gray);
+  doc.setFont('helvetica','normal');
+  const paiement = document.getElementById('pf-paiement');
+  const franco = document.getElementById('pf-franco');
+  const validite = document.getElementById('pf-validite').value;
+  const notes = document.getElementById('pf-notes').value;
+  let cy = y + 4;
+  doc.text('Paiement: ' + paiement.options[paiement.selectedIndex].text, 14, cy); cy+=5;
+  doc.text('Livraison: ' + franco.options[franco.selectedIndex].text, 14, cy); cy+=5;
+  doc.text('Validite: ' + validite, 14, cy); cy+=5;
+  if(notes){ 
+    const noteLines = doc.splitTextToSize('Notes: '+notes, 90);
+    doc.text(noteLines, 14, cy);
+  }
+  
+  // Mention proforma informative
+  doc.setFontSize(9);
+  doc.setFont('helvetica','bolditalic');
+  doc.setTextColor(184,115,51);
+  doc.text('Proforma informative — ne constitue pas une facture', w/2, doc.internal.pageSize.getHeight()-18, {align:'center'});
+
+  // Footer
+  const pageH = doc.internal.pageSize.getHeight();
+  doc.setFillColor(44,36,32);
+  doc.rect(0, pageH-12, w, 12, 'F');
+  doc.setTextColor(184,115,51);
+  doc.setFontSize(7);
+  doc.setFont('helvetica','normal');
+  doc.text('Free Spirits Distribution — 53 rue de Montreuil, 75011 Paris — free-spirits.fr', w/2, pageH-5, {align:'center'});
+  
+  // Save
+  const filename = 'Proforma_'+(clientName.replace(/[^a-zA-Z0-9]/g,'_'))+'_'+pfNum+'.pdf';
+  if(arguments[0]==='blob'){return {blob:doc.output('blob'),filename:filename}}
+  doc.save(filename);
+}
+
+function n2(v){ return (v||0).toFixed(2); }
+
+async function saveToCA(){
+  if(!lines.length){alert('Le bon est vide.');return;}
+  if(!sbToken){alert('Vous devez être connecté au CRM pour enregistrer au CA. Connectez-vous d\'abord via le CRM.');return;}
+  const pfNum = document.getElementById('pf-numero').value || 'PF-'+new Date().toISOString().slice(0,10);
+  const clientName = document.getElementById('pf-client').value || 'Client';
+  const noClient = document.getElementById('pf-noclient').value || '';
+  const pfDate = document.getElementById('pf-date').value || new Date().toISOString().split('T')[0];
+  // Format date DD/MM/YYYY
+  const d = new Date(pfDate);
+  const dateStr = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+
+  let totHDHT=0, totDroits=0, totHT=0, totQty=0;
+  lines.forEach(function(l){ totHDHT+=l.total_hdht; totDroits+=l.droits*l.qty; totHT+=l.total_ht; totQty+=l.qty; });
+  const tva = Math.round(totHT*0.20*100)/100;
+  const ttc = Math.round((totHT+tva)*100)/100;
+
+  const commande = {
+    commande: pfNum,
+    no_client: noClient,
+    date: dateStr,
+    client: clientName.toUpperCase(),
+    hdht: Math.round(totHDHT*100)/100,
+    droits: Math.round(totDroits*100)/100,
+    ht: Math.round(totHT*100)/100,
+    tva: tva,
+    ttc: ttc,
+    bouteilles: totQty
+  };
+
+  const msg = document.getElementById('pf-save-msg');
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/commandes',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(commande)
+    });
+    if(res.ok){
+      msg.style.color='var(--green)';
+      msg.textContent='\u2713 Proforma enregistrée au CA : '+pfNum+' — '+fmt(ttc)+' TTC';
+    } else {
+      const err = await res.text();
+      msg.style.color='var(--red)';
+      msg.textContent='\u2717 Erreur : '+err;
+    }
+  }catch(e){
+    msg.style.color='var(--red)';
+    msg.textContent='\u2717 Erreur réseau : '+e.message;
+  }
+}
+
+function updateCAButton(){
+  var container=document.getElementById('pf-ca-btn');
+  if(userRole==='admin'||userRole==='manager'){
+    container.innerHTML='<button class="btn btn-green" onclick="saveToCA()">&#10004; Enregistrer au CA</button>';
+  } else {
+    container.innerHTML='<button class="btn btn-green" onclick="sendToCommande()">&#9993; Envoyer la commande</button>';
+  }
+}
+
+async function sendToCommande(){
+  if(!lines.length){alert('Le bon est vide.');return}
+  var msg=document.getElementById('pf-save-msg');
+  var pfNum=document.getElementById('pf-numero').value||'PF-'+new Date().toISOString().slice(0,10);
+  var clientName=document.getElementById('pf-client').value||'Client';
+  var noClient=document.getElementById('pf-noclient').value||'';
+  var pfDate=document.getElementById('pf-date').value||'';
+  var agent=document.getElementById('pf-agent').value||'';
+  var totHT=0,totHDHT=0,totDroits=0,totQty=0;
+  lines.forEach(function(l){totHDHT+=l.total_hdht;totDroits+=l.droits*l.qty;totHT+=l.total_ht;totQty+=l.qty});
+  var tva=Math.round(totHT*0.20*100)/100;
+  var ttc=Math.round((totHT+tva)*100)/100;
+  var d=new Date(pfDate||Date.now());
+  var dateStr=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  var paiement=document.getElementById('pf-paiement');
+  var franco=document.getElementById('pf-franco');
+
+  // 1. Save to Supabase as PROFORMA
+  if(sbToken){
+    try{
+      var commande={
+        commande:pfNum,no_client:noClient,date:dateStr,client:clientName.toUpperCase(),
+        hdht:Math.round(totHDHT*100)/100,droits:Math.round(totDroits*100)/100,
+        ht:Math.round(totHT*100)/100,tva:tva,ttc:ttc,bouteilles:totQty,
+        statut:'PROFORMA',agent_code:agent,
+        lignes:JSON.stringify(lines),
+        client_adresse:document.getElementById('pf-adresse').value||'',
+        client_cp:document.getElementById('pf-cp').value||'',
+        client_ville:document.getElementById('pf-ville').value||'',
+        client_tel:document.getElementById('pf-tel').value||'',
+        client_email:document.getElementById('pf-email').value||'',
+        notes:document.getElementById('pf-notes').value||'',
+        paiement:paiement.options[paiement.selectedIndex].text,
+        franco:franco.options[franco.selectedIndex].text
+      };
+      await fetch(SUPABASE_URL+'/rest/v1/commandes',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(commande)
+      });
+    }catch(e){console.warn('Sauvegarde proforma erreur:',e)}
+  }
+
+  // 2. Generate PDF + share/mail
+  var subject='Commande '+pfNum+' - '+clientName;
+  var bodyText='Bonjour,\n\nVeuillez trouver en pièce jointe la proforma '+pfNum+' pour '+clientName+' du '+pfDate+'.\n\nRécapitulatif :\n- '+lines.length+' référence(s)\n- Total HT : '+totHT.toFixed(2)+' €\n- TVA 20% : '+tva.toFixed(2)+' €\n- Total TTC : '+ttc.toFixed(2)+' €\n\nAgent : '+agent+'\n\nCordialement';
+  var pdfData=exportPDF('blob');
+  var pdfFile=new File([pdfData.blob],pdfData.filename,{type:'application/pdf'});
+  if(navigator.canShare && navigator.canShare({files:[pdfFile]})){
+    try{
+      await navigator.share({title:subject,text:bodyText,files:[pdfFile]});
+      msg.style.color='var(--green)';
+      msg.textContent='\u2713 Proforma envoyée et enregistrée !';
+      return;
+    }catch(e){
+      if(e.name==='AbortError'){msg.style.color='var(--gray-40)';msg.textContent='Envoi annulé (proforma enregistrée).';return}
+    }
+  }
+  var a=document.createElement('a');a.href=URL.createObjectURL(pdfData.blob);a.download=pdfData.filename;a.click();
+  setTimeout(function(){
+    window.location.href='mailto:commande@free-spirits.fr?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(bodyText);
+  },500);
+  msg.style.color='var(--green)';
+  msg.textContent='\u2713 Proforma enregistrée — PDF téléchargé, joignez-le au mail.';
+}
+
+function updateCRMStatus(connected){
+  const status=document.getElementById('pf-crm-status');
+  const loginBtn=document.getElementById('pf-login-btn');
+  if(connected){
+    status.innerHTML='\u2713 <span style="color:var(--green)">CRM connect\u00e9 ('+crmContacts.length+' clients)</span>';
+    loginBtn.style.display='none';
+    document.getElementById('pf-login-box').className='hidden';
+  } else {
+    status.innerHTML='<span style="color:var(--red)">\u2717 Non connect\u00e9</span>';
+    loginBtn.style.display='';
+  }
+}
+function showProformaLogin(){
+  const box=document.getElementById('pf-login-box');
+  box.className=box.className==='hidden'?'':'hidden';
+}
+async function doProformaLogin(){
+  const email=document.getElementById('pf-login-email').value.trim();
+  const pwd=document.getElementById('pf-login-pwd').value;
+  const msg=document.getElementById('pf-login-msg');
+  if(!email||!pwd){msg.textContent='Renseignez email et mot de passe.';msg.style.color='var(--red)';return;}
+  msg.textContent='Connexion...';msg.style.color='var(--text-light)';
+  try{
+    const res=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,password:pwd})
+    });
+    const data=await res.json();
+    if(!res.ok){msg.textContent=data.error_description||data.msg||'Erreur de connexion';msg.style.color='var(--red)';return;}
+    sbToken=data.access_token;
+    localStorage.setItem('sb_token',sbToken);
+    // Fetch role after login
+    try{
+      const uRes=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}});
+      if(uRes.ok){const uD=await uRes.json();const pR=await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+uD.id+'&select=role',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}});if(pR.ok){const pA=await pR.json();if(pA.length)userRole=pA[0].role||'agent';}}
+    }catch(e){console.warn('Role fetch error',e)}
+    msg.textContent='\u2713 Connect\u00e9 !';msg.style.color='var(--green)';
+    await loadCRMContacts();
+    updateCRMStatus(true);
+    updateCAButton();
+  }catch(e){
+    msg.textContent='Erreur r\u00e9seau : '+e.message;msg.style.color='var(--red)';
+  }
+}
+
+function exportCSV(){
+  if(!lines.length){alert('Le bon est vide.');return;}
+  let csv = 'Ref;Produit;Categorie;Vol;PCB;Qte;HDHT Unit;Animation;HDHT Net;Droits;HT Unit;Total HT\n';
+  lines.forEach(function(l){
+    csv += [l.ref,'"'+l.name+'"',l.category,l.vol,l.pcb,l.qty,n2(l.hdht),l.animation?'1 btl -25%':'',n2(l.hdht_net),n2(l.droits),n2(l.ht_unit),n2(l.total_ht)].join(';')+'\n';
+  });
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'proforma_export.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
