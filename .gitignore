@@ -1,0 +1,60 @@
+# --- Secrets & environnement ---
+.env
+.env.*
+!.env.example
+*.local
+secrets.json
+config.local.js
+
+# --- Supabase (clés et dumps) ---
+service_role*
+*.dump
+*.sql.bak
+supabase/.branches
+supabase/.temp
+
+# --- Claude Code ---
+.claude/
+!.claude/commands/
+CLAUDE.local.md
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+.~lock.*
+
+# --- Editeurs ---
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# --- Node (au cas où) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+package-lock.json.bak
+
+# --- Build / cache ---
+dist/
+build/
+.cache/
+*.log
+
+# --- Données sensibles métier ---
+clients_export*.csv
+clients_export*.xlsx
+*_backup_*.csv
+backups/
+
+# --- Documents de travail volumineux ---
+*.tmp
+~$*
+
+# --- Garder ces fichiers exemples ---
+!.env.example
+!sample_*.csv
