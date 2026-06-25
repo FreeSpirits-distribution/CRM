@@ -7,9 +7,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="data:application/json,{}">
 <title>CRM FSD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#faf5ef;--navy:#2c2420;--blue:#b87333;--blue-h:#9a5f2a;--green:#6b8f5e;--green-d:#4a7040;--orange:#d4a054;--red:#c45c5c;--purple:#8b6b8a;--gray-05:#f5f0ea;--gray-10:#e0d6cc;--gray-20:#b8a99a;--gray-40:#7a6e63;--gray-60:#3d3430;--card:#fff;--radius:8px;--shadow:0 2px 8px rgba(44,36,32,.1)}
+:root{--bg:#f4efe6;--navy:#211a15;--blue:#b87333;--blue-h:#9a5f2a;--green:#6f8a4f;--green-d:#586b38;--orange:#c79a4e;--red:#bf7d63;--purple:#8a6b86;--gray-05:#f4ede2;--gray-10:#e6ddcf;--gray-20:#c3b5a4;--gray-40:#9a8a78;--gray-60:#3d3430;--card:#fff;--radius:4px;--shadow:0 1px 3px rgba(43,33,27,.07)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--gray-60);font-size:14px}
 .nav{background:var(--navy);color:#fff;display:flex;align-items:center;height:48px;padding:0 20px;position:sticky;top:0;z-index:1000}
 .nav-logo{background:#fff;padding:6px 14px;border-radius:var(--radius);display:flex;align-items:center;margin-right:20px}.nav-logo img{height:34px;display:block}
@@ -273,6 +276,29 @@ input,select,textarea{font-size:16px!important}
 .save-indicator.show{opacity:1}
 @media print{.nav,.tour-config,.tour-actions,.tour-week-nav,.di-actions,.qe-overlay,.day-search,.pool-add-btns,.di-remove,.cal-toast,.save-indicator{display:none!important}body{background:#fff}.tour-grid{display:block}.day-card{page-break-inside:avoid}}
 @media(max-width:768px){.toolbar{flex-direction:column}.search{width:100%}.tour-summary{grid-template-columns:repeat(3,1fr)}.tour-days-grid{grid-template-columns:1fr}.pan-head{padding:18px 20px 22px}.pan-close{width:42px;height:42px;font-size:20px;top:12px;right:12px}.pan-body{padding:16px 16px 92px}.pan-edit-grid{grid-template-columns:1fr}.pan-actions-sticky{padding:12px 16px calc(16px + env(safe-area-inset-bottom));margin:0 -16px -16px}.acts{flex-direction:column}}
+/* ===== CHARTE FREE SPIRITS · Direction Comptoir ===== */
+body{font-family:'IBM Plex Sans',sans-serif}
+.nav{border-bottom:2px solid var(--blue)}
+.nav-tab{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
+.nav-badge{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.05em;border-radius:3px;background:transparent;border:1px solid rgba(255,255,255,.28)}
+.kpi,.ca-kpi{box-shadow:none;border:1px solid var(--gray-10)}
+.kpi-val,.ca-kpi-val{font-family:'Archivo',sans-serif;font-variant-numeric:tabular-nums}
+.kpi-lbl,.ca-kpi-lbl{font-family:'Archivo',sans-serif}
+h2,.ca-header h2{font-family:'Archivo',sans-serif;letter-spacing:.01em}
+.tbl-wrap,.ca-tbl-wrap{box-shadow:none;border:1px solid var(--gray-10)}
+thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;border-bottom:2px solid var(--navy);color:var(--navy)}
+.bdg{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.04em;border-radius:3px;font-size:10px}
+.bdg-top{background:transparent;border:1px solid #6f8a4f;color:#586b38}
+.bdg-act{background:transparent;border:1px solid #b87333;color:#8a5a2f}
+.bdg-pro{background:transparent;border:1px solid #c79a4e;color:#8a6a2f}
+.bdg-age{background:transparent;border:1px solid #8a6b86;color:#6b4d6a}
+.bdg-ina{background:transparent;border:1px solid #bf7d63;color:#8a4534}
+.bdg-mbo{background:var(--blue);border-radius:3px;font-family:'Archivo',sans-serif}
+.bdg-vcf{background:var(--purple);border-radius:3px;font-family:'Archivo',sans-serif}
+.chip{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.04em;border-radius:3px;font-size:11px}
+.btn{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:12px}
+.btn-blue{background:var(--navy)}.btn-blue:hover{background:#100c09}
+.pan-head,.ca-add-head{border-bottom:2px solid var(--blue)}
 </style>
 <!-- redeploy 2026-06-25 07:03:04 -->
 </head>
