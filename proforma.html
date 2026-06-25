@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Proforma — Free Spirits Distribution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root{--bg:#faf5ef;--navy:#2c2420;--copper:#b87333;--copper-h:#9a5f2a;--green:#6b8f5e;--red:#c45c5c;--cream:#f5f0ea;--border:#e0d6cc;--muted:#b8a99a;--text:#3d3430;--text-light:#7a6e63;--card:#fff;--radius:8px;--shadow:0 2px 8px rgba(44,36,32,.1)}
+:root{--bg:#f4efe6;--navy:#211a15;--copper:#b87333;--copper-h:#9a5f2a;--green:#6f8a4f;--red:#bf7d63;--cream:#f4ede2;--border:#e6ddcf;--muted:#c3b5a4;--text:#3d3430;--text-light:#9a8a78;--card:#fff;--radius:4px;--shadow:0 1px 3px rgba(43,33,27,.07)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
 .nav{background:var(--navy);color:#fff;display:flex;align-items:center;height:48px;padding:0 20px;position:sticky;top:0;z-index:100}
@@ -59,6 +62,19 @@ tfoot td{padding:10px 8px;font-weight:800;border-top:2px solid var(--copper);col
 .client-item .ci-name{font-weight:700;color:var(--text)}.client-item .ci-details{font-size:11px;color:var(--text-light)}
 .client-item .ci-badge{background:var(--copper);color:#fff;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700}
 @media print{.nav,.actions,.no-print{display:none!important}.container{padding:0;max-width:100%}}
+/* ===== CHARTE FREE SPIRITS · Direction Comptoir ===== */
+body{font-family:'IBM Plex Sans',sans-serif}
+.nav{border-bottom:2px solid var(--copper)}
+.nav-logo{font-family:'Archivo',sans-serif}
+h2,.card h3{font-family:'Archivo',sans-serif}
+h2{letter-spacing:.01em}
+.card{box-shadow:none;border:1px solid var(--border)}
+thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;border-bottom:2px solid var(--navy);color:var(--navy)}
+label{font-family:'Archivo',sans-serif}
+.btn{font-family:'Archivo',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:12px}
+.sum-box{border-radius:4px}
+.sum-val{font-family:'Archivo',sans-serif;font-variant-numeric:tabular-nums}
+.product-info .pi-cat,.client-item .ci-badge{font-family:'Archivo',sans-serif;text-transform:uppercase;border-radius:3px}
 </style>
 </head>
 <body>
