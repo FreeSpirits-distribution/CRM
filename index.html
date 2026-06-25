@@ -300,7 +300,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 .btn-blue{background:var(--navy)}.btn-blue:hover{background:#100c09}
 .pan-head,.ca-add-head{border-bottom:2px solid var(--blue)}
 </style>
-<!-- redeploy transfert 2026-06-25 09:16 -->
+<!-- redeploy producteur 2026-06-25 11:50 -->
 </head>
 <body>
 
@@ -604,7 +604,10 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-head"><h3 id="cat-edit-title">Ajouter un produit</h3><button class="ca-add-close" onclick="closeCatEdit()">&times;</button></div>
 <div class="ca-add-body">
 <div class="ca-add-field"><label>R&eacute;f&eacute;rence</label><input type="text" id="ce-ref" placeholder="ex: WH001"></div>
-<div class="ca-add-field full"><label>Nom du produit</label><input type="text" id="ce-name" placeholder="ex: LAGAVULIN 16 ANS"></div>
+<div class="ca-add-field full"><label>Nom du produit</label><input type="text" id="ce-name" placeholder="ROUGET DE LISLE DISTILLERIE BM SIGNATURE FUME AU TUYE"></div>
+<div class="ca-add-field full"><label>Producteur / Distillerie</label><input type="text" id="ce-producteur" placeholder="ex: Distillerie Rouget de Lisle"></div>
+<div class="ca-add-field"><label>Pays d'origine</label><input type="text" id="ce-pays" placeholder="ex: France"></div>
+<div class="ca-add-field"><label>R&eacute;gion</label><input type="text" id="ce-region" placeholder="ex: Jura"></div>
 <div class="ca-add-field"><label>Cat&eacute;gorie</label><input type="text" id="ce-category" list="ce-cat-list" placeholder="WHISKY"><datalist id="ce-cat-list"></datalist></div>
 <div class="ca-add-field"><label>Classification</label><input type="text" id="ce-classif" placeholder="ex: SINGLE MALT"></div>
 <div class="ca-add-field"><label>&Eacute;tui</label><input type="text" id="ce-etui" placeholder="ex: OUI"></div>
@@ -618,6 +621,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>Coefficient</label><input type="number" id="ce-coef" step="0.01" placeholder="2.00"></div>
 <div class="ca-add-field"><label>PVC TTC (&euro;)</label><input type="number" id="ce-pvc" step="0.01" placeholder="0.00"></div>
 <div class="ca-add-field"><label>Disponibilit&eacute;</label><select id="ce-dispo"><option value="DISPONIBLE">Disponible</option><option value="INDISPONIBLE">Indisponible</option><option value="RUPTURE">Rupture d&eacute;finitive</option></select></div>
+<div class="ca-add-field full"><label>Description / fiche produit</label><textarea id="ce-description" rows="3" placeholder="Storytelling, profil aromatique, m&eacute;thode de production, accords..." style="width:100%;resize:vertical;padding:8px;border:1px solid var(--gray-10);border-radius:6px;font-family:inherit;font-size:13px"></textarea></div>
 <div class="ca-add-field full"><label>Image du produit (URL ou upload)</label>
 <input type="text" id="ce-image" placeholder="Coller une URL d'image..." oninput="cePreviewImg(this.value)" style="margin-bottom:6px">
 <input type="file" id="ce-image-file" accept="image/*" onchange="ceUploadImg(this)">
@@ -2086,6 +2090,10 @@ var p=id?catalogData.find(x=>x.id===id):null;
 document.getElementById('cat-edit-title').textContent=p?'Modifier: '+p.name:'Ajouter un produit';
 document.getElementById('ce-ref').value=p?p.ref||'':'';
 document.getElementById('ce-name').value=p?p.name||'':'';
+document.getElementById('ce-producteur').value=p?p.producteur||'':'';
+document.getElementById('ce-pays').value=p?p.pays||'':'';
+document.getElementById('ce-region').value=p?p.region||'':'';
+document.getElementById('ce-description').value=p?p.description||'':'';
 document.getElementById('ce-category').value=p?p.category||'':'';
 document.getElementById('ce-classif').value=p?p.classif||'':'';
 document.getElementById('ce-etui').value=p?p.etui||'':'';
@@ -2122,6 +2130,10 @@ if(!name){alert('Le nom du produit est obligatoire.');return}
 var data={
 ref:document.getElementById('ce-ref').value.trim(),
 name:name,
+producteur:document.getElementById('ce-producteur').value.trim()||null,
+pays:document.getElementById('ce-pays').value.trim()||null,
+region:document.getElementById('ce-region').value.trim()||null,
+description:document.getElementById('ce-description').value.trim()||null,
 category:document.getElementById('ce-category').value.trim(),
 classif:document.getElementById('ce-classif').value.trim(),
 etui:document.getElementById('ce-etui').value.trim(),
