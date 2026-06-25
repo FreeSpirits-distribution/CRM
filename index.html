@@ -300,7 +300,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 .btn-blue{background:var(--navy)}.btn-blue:hover{background:#100c09}
 .pan-head,.ca-add-head{border-bottom:2px solid var(--blue)}
 </style>
-<!-- redeploy producteur 2026-06-25 11:50 -->
+<!-- redeploy search 2026-06-25 12:10 -->
 </head>
 <body>
 
@@ -685,8 +685,9 @@ document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
 document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
 if(!canSeeAll()){document.getElementById('kpi-sector').querySelector('.kpi-lbl').textContent='Mon secteur'}}
 
-function af(){const q=document.getElementById('q').value.toLowerCase(),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value;
-F=D.filter(c=>{if(!canSeeAll()&&!currentAgentCodes.includes(c.agent))return false;if(q&&!(c.nom.toLowerCase().includes(q)||c.ville.toLowerCase().includes(q)||c.email.includes(q)||c.cp.includes(q)||c.contact.toLowerCase().includes(q)||c.dept.includes(q)))return false;if(reg&&c.region!==reg)return false;if(dept&&c.dept!==dept)return false;if(age&&c.agent!==age)return false;if(src==='VCF'&&!c.src.includes('VCF'))return false;if(src==='CRM'&&c.src.includes('VCF'))return false;if(src==='MULTI'&&!c.src.includes('|'))return false;if(ac.size>0&&!ac.has(c.classif))return false;return true});
+function nrm(s){return (s==null?'':String(s)).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function af(){const q=nrm(document.getElementById('q').value),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value;
+F=D.filter(c=>{if(!canSeeAll()&&!currentAgentCodes.includes(c.agent))return false;if(q){var _h=nrm((c.nom||'')+' '+(c.ville||'')+' '+(c.email||'')+' '+(c.cp||'')+' '+(c.contact||'')+' '+(c.dept||'')+' '+(c.tel||'')+' '+(c.port||'')+' '+(c.agent||'')+' '+(c.n_clt||''));if(!_h.includes(q))return false;}if(reg&&c.region!==reg)return false;if(dept&&c.dept!==dept)return false;if(age&&c.agent!==age)return false;if(src==='VCF'&&!c.src.includes('VCF'))return false;if(src==='CRM'&&c.src.includes('VCF'))return false;if(src==='MULTI'&&!c.src.includes('|'))return false;if(ac.size>0&&!ac.has(c.classif))return false;return true});
 ds();cp=1;render();uk()}
 function ds(){F.sort((a,b)=>{let va=a[sc],vb=b[sc];if(sc==='ca'||sc==='score')return(va-vb)*sd;va=String(va).toLowerCase();vb=String(vb).toLowerCase();return va<vb?-sd:va>vb?sd:0})}
 function sb(c){if(sc===c)sd*=-1;else{sc=c;sd=(c==='ca'||c==='score')?-1:1}ds();render()}
