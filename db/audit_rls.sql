@@ -1,8 +1,8 @@
 -- =====================================================
 -- AUDIT RLS — CRM FSD
--- Projet Supabase : ajukuwrznhfsfdeejdkl
+-- Projet Supabase : dlpzxngnphxuvopcxenf  (projet de PRODUCTION, cf. index.html)
 -- =====================================================
--- À coller dans : https://supabase.com/dashboard/project/ajukuwrznhfsfdeejdkl/sql/new
+-- À coller dans : https://supabase.com/dashboard/project/dlpzxngnphxuvopcxenf/sql/new
 -- 100% lecture seule. Aucune modification de la base.
 -- Exécuter chaque bloc séparément (ils renvoient des résultats distincts).
 -- =====================================================
@@ -90,11 +90,12 @@ ORDER BY tablename, cmd, policyname;
 WITH tables_critiques AS (
   SELECT unnest(ARRAY[
     'profiles',
-    'clients',
+    'contacts',
+    'clients_order',
     'commandes',
-    'visites',
+    'relances',
     'produits'
-    -- AJOUTE ICI les tables de ton schéma réel
+    -- Tables réelles du schéma (cf. appels /rest/v1/ dans index.html)
   ]) AS tablename
 ),
 policies_par_cmd AS (
@@ -130,7 +131,8 @@ SELECT
   cmd,
   qual           AS using_clause,
   CASE
-    WHEN qual ILIKE '%code_agent%' THEN 'OK : filtre code_agent présent'
+    WHEN qual ILIKE '%agent%' THEN 'OK : filtre agent présent (agent / agent_code / agent_codes)'
+    WHEN qual ILIKE '%auth.uid%' THEN 'OK : filtre par utilisateur (auth.uid)'
     WHEN qual ILIKE '%role%' AND (qual ILIKE '%admin%' OR qual ILIKE '%manager%') THEN 'OK : bypass admin/manager'
     WHEN qual IS NULL THEN 'À vérifier : pas de USING (peut être normal pour INSERT)'
     ELSE 'À AUDITER : ni code_agent ni admin/manager dans le filtre'
@@ -147,19 +149,21 @@ ORDER BY verdict, tablename, policyname;
 -- de la table profiles. Ce sont des données orphelines.
 -- Adapte les FROM selon les tables de ton schéma.
 
--- A. Codes agent dans clients qui n'existent pas dans profiles
-SELECT 'clients' AS source_table, c.code_agent, COUNT(*) AS nb_lignes
-FROM public.clients c
-LEFT JOIN public.profiles p ON p.code_agent = c.code_agent
-WHERE c.code_agent IS NOT NULL AND p.code_agent IS NULL
-GROUP BY c.code_agent;
+-- A. Codes agent présents dans contacts mais rattachés à aucun profil.
+-- Note : sur contacts la colonne est "agent" ; sur profiles c'est "agent_code"
+-- (code principal) + "agent_codes" (text[], codes secondaires).
+SELECT c.agent AS code_agent, COUNT(*) AS nb_lignes
+FROM public.contacts c
+WHERE c.agent IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM public.profiles p
+    WHERE c.agent = p.agent_code
+       OR c.agent = ANY(COALESCE(p.agent_codes, ARRAY[]::text[]))
+  )
+GROUP BY c.agent
+ORDER BY nb_lignes DESC;
 
--- B. Idem pour commandes (décommente si la table existe)
--- SELECT 'commandes' AS source_table, c.code_agent, COUNT(*)
--- FROM public.commandes c
--- LEFT JOIN public.profiles p ON p.code_agent = c.code_agent
--- WHERE c.code_agent IS NOT NULL AND p.code_agent IS NULL
--- GROUP BY c.code_agent;
+-- B. Idem pour clients_order (rattachement par auth.uid = id, pas par code agent).
 
 
 -- =====================================================
@@ -175,12 +179,12 @@ SELECT
   indexdef
 FROM pg_indexes
 WHERE schemaname = 'public'
-  AND tablename IN ('clients', 'commandes', 'visites', 'profiles')
+  AND tablename IN ('contacts', 'clients_order', 'commandes', 'relances', 'profiles')
 ORDER BY tablename, indexname;
 
 -- À exécuter ensuite si tu vois qu'un index manque :
--- CREATE INDEX IF NOT EXISTS idx_clients_code_agent ON public.clients (code_agent);
--- CREATE INDEX IF NOT EXISTS idx_commandes_code_agent ON public.commandes (code_agent);
+-- CREATE INDEX IF NOT EXISTS idx_contacts_agent ON public.contacts (agent);
+-- CREATE INDEX IF NOT EXISTS idx_relances_agent ON public.relances (agent);
 
 
 -- =====================================================

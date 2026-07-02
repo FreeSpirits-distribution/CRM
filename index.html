@@ -644,8 +644,8 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="pan-body" id="db"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 let D=[]
 let currentAgent='',currentRole='',currentAgentCodes=[],currentDisplayName='';
@@ -693,9 +693,9 @@ function ds(){F.sort((a,b)=>{let va=a[sc],vb=b[sc];if(sc==='ca'||sc==='score')re
 function sb(c){if(sc===c)sd*=-1;else{sc=c;sd=(c==='ca'||c==='score')?-1:1}ds();render()}
 
 function render(){const s=(cp-1)*PS,pg=F.slice(s,s+PS),tb=document.getElementById('tb');
-tb.innerHTML=pg.map((c,i)=>{const m=CM[c.classif]||{l:c.classif,c:''};const mbo=c.mbo?'<span class="bdg bdg-mbo">MBO</span>':'';const vcf=c.src.includes('VCF')?'<span class="bdg bdg-vcf">VCF</span>':'';const ph=c.port||c.tel||'';const em=c.email?'<a href="mailto:'+c.email+'" onclick="event.stopPropagation()">'+c.email+'</a>':'';
+tb.innerHTML=pg.map((c,i)=>{const m=CM[c.classif]||{l:c.classif,c:''};const mbo=c.mbo?'<span class="bdg bdg-mbo">MBO</span>':'';const vcf=c.src.includes('VCF')?'<span class="bdg bdg-vcf">VCF</span>':'';const ph=c.port||c.tel||'';const em=c.email?'<a href="mailto:'+encodeURIComponent(c.email)+'" onclick="event.stopPropagation()">'+esc(c.email)+'</a>':'';
 const sp=Math.min(100,c.score);const sc_col=sp>60?'var(--green)':sp>30?'var(--orange)':'var(--gray-20)';
-return '<tr onclick="openP('+(s+i)+')"><td><div class="score-bar"><div class="score-fill" style="width:'+sp+'%;background:'+sc_col+'"></div></div> <span style="font-size:11px;font-weight:700;color:var(--gray-40)">'+c.score+'</span></td><td class="nom-cell">'+esc(c.nom)+mbo+vcf+'</td><td>'+esc(c.ville)+'</td><td>'+esc(c.dept)+'</td><td>'+esc(c.region)+'</td><td><span class="bdg '+m.c+'">'+m.l+'</span></td><td style="font-size:12px">'+esc(ph)+'</td><td style="font-size:12px">'+em+'</td>'+(canSeeAll()?'<td style="text-align:right;font-weight:600">'+(c.ca>0?c.ca.toLocaleString('fr-FR',{minimumFractionDigits:0})+' \u20ac':'-')+'</td>':'')+'<td style="font-size:12px">'+esc(c.agent)+'</td></tr>'}).join('');
+return '<tr onclick="openP('+(s+i)+')"><td><div class="score-bar"><div class="score-fill" style="width:'+sp+'%;background:'+sc_col+'"></div></div> <span style="font-size:11px;font-weight:700;color:var(--gray-40)">'+c.score+'</span></td><td class="nom-cell">'+esc(c.nom)+mbo+vcf+'</td><td>'+esc(c.ville)+'</td><td>'+esc(c.dept)+'</td><td>'+esc(c.region)+'</td><td><span class="bdg '+m.c+'">'+esc(m.l)+'</span></td><td style="font-size:12px">'+esc(ph)+'</td><td style="font-size:12px">'+em+'</td>'+(canSeeAll()?'<td style="text-align:right;font-weight:600">'+(c.ca>0?c.ca.toLocaleString('fr-FR',{minimumFractionDigits:0})+' \u20ac':'-')+'</td>':'')+'<td style="font-size:12px">'+esc(c.agent)+'</td></tr>'}).join('');
 document.getElementById('rc').textContent=F.length+' contacts';document.getElementById('caf').textContent='';renderPg()}
 
 function renderPg(){const tp=Math.ceil(F.length/PS),p=document.getElementById('pg');if(tp<=1){p.innerHTML='';return}let h='<button '+(cp===1?'disabled':'')+' onclick="gp('+(cp-1)+')">&laquo;</button>';const st=Math.max(1,cp-3),en=Math.min(tp,cp+3);for(let i=st;i<=en;i++)h+='<button class="'+(i===cp?'on':'')+'" onclick="gp('+i+')">'+i+'</button>';h+='<button '+(cp===tp?'disabled':'')+' onclick="gp('+(cp+1)+')">&raquo;</button>';p.innerHTML=h}
@@ -727,7 +727,7 @@ const c=panelIsNew?panelDraftClient:D.find(x=>x.id===panelClientId);
 if(!c)return;
 const m=CM[c.classif]||{l:c.classif,c:''};
 document.getElementById('dn').textContent=c.nom||'Nouveau client';
-document.getElementById('ds').innerHTML='<span class="bdg '+m.c+'">'+m.l+'</span>'+(c.mbo?' <span class="bdg bdg-mbo">MBO</span>':'')+((c.src||'').includes('VCF')?' <span class="bdg bdg-vcf">VCF</span>':'')+' &mdash; '+esc(c.ville||'')+' ('+c.dept+') &bull; Score: <b>'+c.score+'</b>';
+document.getElementById('ds').innerHTML='<span class="bdg '+m.c+'">'+esc(m.l)+'</span>'+(c.mbo?' <span class="bdg bdg-mbo">MBO</span>':'')+((c.src||'').includes('VCF')?' <span class="bdg bdg-vcf">VCF</span>':'')+' &mdash; '+esc(c.ville||'')+' ('+esc(c.dept||'')+') &bull; Score: <b>'+c.score+'</b>';
 let h='';
 if(panelEditMode){
 const classifOptions=[{value:'TOP',label:'Top'},{value:'ACTIF',label:'Actif'},{value:'CLIENT',label:'Client'},{value:'PROSPECT',label:'Prospect'},{value:'AGENT',label:'Agent'},{value:'INACTIF',label:'Inactif'}];
@@ -761,7 +761,7 @@ h+=panelInput('Notes','pf-comment',c.comment,'textarea','full');
 h+='</div></div>';
 h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="closeP()">Fermer</button><button class="btn btn-ghost" onclick="'+(panelIsNew?'closeP()':'setPanelEditMode(false)')+'">Annuler</button><button class="btn btn-blue" onclick="savePanelEdit()">'+(panelIsNew?'Ajouter':'Enregistrer')+'</button></div>';
 }else{
-h+='<div class="sec"><h3>Contact</h3>'+rw('Gerant',c.contact)+rw('Tel',c.tel)+rw('Portable',c.port)+rw('Email',c.email?'<a href="mailto:'+c.email+'">'+c.email+'</a>':'')+'</div>';
+h+='<div class="sec"><h3>Contact</h3>'+rw('Gerant',c.contact)+rw('Tel',c.tel)+rw('Portable',c.port)+rwHTML('Email',c.email?'<a href="mailto:'+encodeURIComponent(c.email)+'">'+esc(c.email)+'</a>':'')+'</div>';
 h+='<div class="sec"><h3>Localisation</h3>'+rw('Adresse',c.adresse)+rw('CP',c.cp)+rw('Ville',c.ville)+rw('Dept',c.dept)+rw('Region',c.region)+(isAdminRole()?rw('Dist. Villeneuve',c.distVDA<9000?c.distVDA+' km':'-')+rw('Dist. Herouville',c.distHSC<9000?c.distHSC+' km':'-'):'')+'</div>';
 h+='<div class="sec"><h3>Commercial</h3>'+(canSeeAll()?rw('CA',c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-'):'')+rw('Type',c.type)+rw('Priorite',c.prio)+rw('Agent',c.agent)+rw('Commande',c.cmd)+rw('Relance',c.relance)+rw('Source',c.src)+'</div>';
 if(c.comment)h+='<div class="sec"><h3>Notes</h3><div class="note-box">'+esc(c.comment)+'</div></div>';
@@ -770,8 +770,11 @@ h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="close
 document.getElementById('db').innerHTML=h;document.getElementById('ov').classList.add('open');document.getElementById('pn').classList.add('open')}
 function openP(i){const c=F[i];if(!c)return;panelClientId=c.id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
 function closeP(){panelEditMode=false;panelIsNew=false;panelDraftClient=null;document.getElementById('ov').classList.remove('open');document.getElementById('pn').classList.remove('open')}
-function rw(l,v){return '<div class="row"><span class="rl">'+l+'</span><span class="rv">'+(v||'-')+'</span></div>'}
-function esc(s){if(!s)return '';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function rw(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v?esc(v):'-')+'</span></div>'}
+function rwHTML(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v||'-')+'</span></div>'}
+function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+async function sbFetch(url,opts){const res=await fetch(url,opts);if(!res.ok){let t='';try{t=await res.text()}catch(_){}throw new Error('HTTP '+res.status+(t?' — '+t:''))}return res}
+function csvCell(v){if(typeof v==='number'&&isFinite(v))return String(v);var s=(v==null?'':String(v));if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 function resetF(){document.getElementById('q').value='';document.getElementById('fr').value='';document.getElementById('fd').value='';document.getElementById('fa').value='';document.getElementById('fs').value='';ac.clear();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));af()}
 function openPById(id){const c=D.find(x=>x.id===id);if(!c)return;panelClientId=id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
 function openNewClientPanel(){
@@ -1223,8 +1226,8 @@ const segKm=stat.kmDetails[i]||0;
 daysHtml+='<div class="day-item" draggable="true" data-id="'+c.id+'" data-day="'+d+'" ondragstart="dragItem(event,'+c.id+','+d+')" ondragover="event.preventDefault()" ondrop="dropItem(event,'+d+','+i+')">';
 daysHtml+='<div class="di-num">'+(i+1)+'</div>';
 daysHtml+='<div class="di-info"><div class="di-name">'+esc(c.nom)+'</div>';
-daysHtml+='<div class="di-meta">'+esc(c.ville||'')+' ('+c.dept+') \u2022 <span class="bdg '+m.c+'" style="font-size:9px;padding:1px 5px">'+m.l+'</span>';
-if(c.port||c.tel)daysHtml+=' \u2022 '+(c.port||c.tel);
+daysHtml+='<div class="di-meta">'+esc(c.ville||'')+' ('+esc(c.dept||'')+') \u2022 <span class="bdg '+m.c+'" style="font-size:9px;padding:1px 5px">'+esc(m.l)+'</span>';
+if(c.port||c.tel)daysHtml+=' \u2022 '+esc(c.port||c.tel);
 daysHtml+='</div></div>';
 daysHtml+='<div class="di-km">+'+segKm+' km</div>';
 daysHtml+='<div class="di-ca" style="min-width:60px;text-align:right">'+(c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-')+'</div>';
@@ -1249,7 +1252,7 @@ daysHtml+='<div style="background:var(--card);border-radius:var(--radius);box-sh
 remaining.slice(0,25).forEach(c=>{
 daysHtml+='<div class="pool-row" style="display:flex;align-items:center;padding:5px 6px;border-radius:6px;margin-bottom:2px;font-size:11px;cursor:pointer;transition:background .1s" onmouseover="this.style.background=\'var(--gray-05)\'" onmouseout="this.style.background=\'transparent\'">';
 daysHtml+='<span style="font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:6px" onclick="openPById('+c.id+');setPanelEditMode(true)">'+esc(c.nom)+'</span>';
-daysHtml+='<span style="font-size:10px;color:var(--gray-40);margin-right:6px">'+esc(c.ville||'')+' ('+c.dept+')</span>';
+daysHtml+='<span style="font-size:10px;color:var(--gray-40);margin-right:6px">'+esc(c.ville||'')+' ('+esc(c.dept||'')+')</span>';
 daysHtml+='<span style="background:var(--blue);color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-right:4px">'+c.score+'</span>';
 daysHtml+='<span style="font-size:10px;color:var(--gray-40);min-width:40px;text-align:right;margin-right:4px">'+(function(){var _b=getTourBase();return _b?Math.round(haversine(c.lat,c.lon,_b.lat,_b.lon)):'-'})()+' km</span>';
 daysHtml+='<div class="pool-add-btns">';
@@ -1272,7 +1275,7 @@ if(!c)return;
 qeClientId=id;
 document.getElementById('qe-title').textContent='Modifier: '+c.nom;
 document.getElementById('qe-info').innerHTML=
-'<div class="qe-info-item"><span class="qil">Ville</span> <span class="qiv">'+esc(c.ville||'-')+' ('+c.dept+')</span></div>'+
+'<div class="qe-info-item"><span class="qil">Ville</span> <span class="qiv">'+esc(c.ville||'-')+' ('+esc(c.dept||'')+')</span></div>'+
 '<div class="qe-info-item"><span class="qil">Score</span> <span class="qiv">'+c.score+'</span></div>'+
 '<div class="qe-info-item"><span class="qil">CA</span> <span class="qiv">'+(c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-')+'</span></div>'+
 '<div class="qe-info-item"><span class="qil">Agent</span> <span class="qiv">'+(c.agent||'-')+'</span></div>';
@@ -1402,7 +1405,7 @@ let h='';
 matches.forEach(c=>{
 h+='<div class="dsr-item" onmousedown="event.preventDefault();addToDay('+c.id+','+dayIdx+')">';
 h+='<span class="dsr-name">'+esc(c.nom)+'</span>';
-h+='<span class="dsr-meta">'+esc(c.ville||'')+' ('+c.dept+') &bull; Score:'+c.score+'</span>';
+h+='<span class="dsr-meta">'+esc(c.ville||'')+' ('+esc(c.dept||'')+') &bull; Score:'+c.score+'</span>';
 h+='</div>';
 });
 resultsEl.innerHTML=h;
@@ -1482,8 +1485,8 @@ const segKm=stat.kmDetails[i]||0;
 daysHtml+='<div class="day-item" draggable="true" data-id="'+c.id+'" data-day="'+d+'" ondragstart="dragItem(event,'+c.id+','+d+')" ondragover="event.preventDefault()" ondrop="dropItem(event,'+d+','+i+')">';
 daysHtml+='<div class="di-num">'+(i+1)+'</div>';
 daysHtml+='<div class="di-info"><div class="di-name">'+esc(c.nom)+'</div>';
-daysHtml+='<div class="di-meta">'+esc(c.ville||'')+' ('+c.dept+') \u2022 <span class="bdg '+m.c+'" style="font-size:9px;padding:1px 5px">'+m.l+'</span>';
-if(c.port||c.tel)daysHtml+=' \u2022 '+(c.port||c.tel);
+daysHtml+='<div class="di-meta">'+esc(c.ville||'')+' ('+esc(c.dept||'')+') \u2022 <span class="bdg '+m.c+'" style="font-size:9px;padding:1px 5px">'+esc(m.l)+'</span>';
+if(c.port||c.tel)daysHtml+=' \u2022 '+esc(c.port||c.tel);
 daysHtml+='</div></div>';
 daysHtml+='<div class="di-km">+'+segKm+' km</div>';
 daysHtml+='<div class="di-ca" style="min-width:60px;text-align:right">'+(c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-')+'</div>';
@@ -1508,7 +1511,7 @@ daysHtml+='<div style="background:var(--card);border-radius:var(--radius);box-sh
 remaining.slice(0,25).forEach(c=>{
 daysHtml+='<div class="pool-row" style="display:flex;align-items:center;padding:5px 6px;border-radius:6px;margin-bottom:2px;font-size:11px;cursor:pointer;transition:background .1s" onmouseover="this.style.background=\'var(--gray-05)\'" onmouseout="this.style.background=\'transparent\'">';
 daysHtml+='<span style="font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:6px" onclick="openPById('+c.id+');setPanelEditMode(true)">'+esc(c.nom)+'</span>';
-daysHtml+='<span style="font-size:10px;color:var(--gray-40);margin-right:6px">'+esc(c.ville||'')+' ('+c.dept+')</span>';
+daysHtml+='<span style="font-size:10px;color:var(--gray-40);margin-right:6px">'+esc(c.ville||'')+' ('+esc(c.dept||'')+')</span>';
 daysHtml+='<span style="background:var(--blue);color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-right:4px">'+c.score+'</span>';
 daysHtml+='<span style="font-size:10px;color:var(--gray-40);min-width:40px;text-align:right;margin-right:4px">'+(function(){var _b=getTourBase();return _b?Math.round(haversine(c.lat,c.lon,_b.lat,_b.lon)):'-'})()+' km</span>';
 daysHtml+='<div class="pool-add-btns">';
@@ -1595,7 +1598,7 @@ tourDaysData.forEach((day,d)=>{
 const dayDate=new Date(ws);dayDate.setDate(ws.getDate()+d);
 const dateStr=dayDate.toISOString().split('T')[0];
 day.forEach((c,i)=>{
-csv+=[JOURS_FR[d],dateStr,i+1,'"'+c.nom+'"','"'+(c.ville||'')+'"',c.dept,c.cp,'"'+(c.tel||'')+'"','"'+(c.port||'')+'"','"'+(c.email||'')+'"',c.ca||0,c.score,c.classif,c.prio||'','"'+(c.comment||'').replace(/"/g,'""')+'"'].join(';')+'\n';
+csv+=[JOURS_FR[d],dateStr,i+1,c.nom,c.ville||'',c.dept,c.cp,c.tel||'',c.port||'',c.email||'',c.ca||0,c.score,c.classif,c.prio||'',c.comment||''].map(csvCell).join(';')+'\n';
 });
 });
 const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
@@ -1604,7 +1607,7 @@ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='To
 
 // ---- switchTab already handles tour init ----
 
-function exportCSV(){const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;CA;PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email,c.ca,c.prio,c.agent,c.distVDA,c.distHSC,c.src].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(';')).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
+function exportCSV(){const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;CA;PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email,c.ca,c.prio,c.agent,c.distVDA,c.distHSC,c.src].map(csvCell).join(';')).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeP()});
 
 // ========= CHIFFRE D'AFFAIRES =========
@@ -1790,7 +1793,7 @@ document.getElementById('ca-add-ov').classList.remove('open');
 function exportCACSV(){
 filterCA();
 let csv='COMMANDE;DATE;CLIENT;N_CLIENT;HDHT;DROITS;HT;TVA;TTC;BOUTEILLES\n';
-caFiltered.forEach(r=>{csv+=[r.commande,r.date,'"'+r.client+'"',r.no_client,r.hdht,r.droits,r.ht,r.tva,r.ttc,r.bouteilles].join(';')+'\n'});
+caFiltered.forEach(r=>{csv+=[r.commande,r.date,r.client,r.no_client,r.hdht,r.droits,r.ht,r.tva,r.ttc,r.bouteilles].map(csvCell).join(';')+'\n'});
 const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
 const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CA_FSD_'+currentAgent+'_export.csv';a.click();
 }
@@ -1887,7 +1890,7 @@ else{console.error('CA save failed',await res.text())}
 // Delete CA from Supabase
 async function deleteCAFromDB(cmd){
 try{
-await fetch(SUPABASE_URL+'/rest/v1/commandes?commande=eq.'+encodeURIComponent(cmd),{
+await sbFetch(SUPABASE_URL+'/rest/v1/commandes?commande=eq.'+encodeURIComponent(cmd),{
 method:'DELETE',
 headers:sbHeaders()
 });
@@ -2073,7 +2076,7 @@ return '<tr style="cursor:'+(canSeeAll()?'pointer':'default')+'"'+(canSeeAll()?'
 
 async function updateProduitDispo(id,dispo){
 try{
-await fetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+id,{
 method:'PATCH',
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json'},
 body:JSON.stringify({dispo:dispo})
@@ -2152,14 +2155,14 @@ image_url:(document.getElementById('ce-image').value||'').trim()||null
 };
 try{
 if(catEditId){
-await fetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+catEditId,{
+await sbFetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+catEditId,{
 method:'PATCH',
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json'},
 body:JSON.stringify(data)
 });
 showSaved('Produit modifié');
 }else{
-await fetch(SUPABASE_URL+'/rest/v1/produits',{
+await sbFetch(SUPABASE_URL+'/rest/v1/produits',{
 method:'POST',
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json','Prefer':'return=minimal'},
 body:JSON.stringify(data)
@@ -2174,7 +2177,7 @@ await loadCatalog();
 async function deleteProduit(id,name){
 if(!confirm('Supprimer définitivement "'+name+'" du catalogue ?'))return;
 try{
-await fetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/produits?id=eq.'+id,{
 method:'DELETE',
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
@@ -2301,7 +2304,7 @@ doc.save('Proforma_'+(p.client||'').replace(/[^a-zA-Z0-9]/g,'_')+'_'+(p.commande
 async function validatePFO(id){
 if(!confirm('Valider cette proforma et la passer en commande ?'))return;
 try{
-await fetch(SUPABASE_URL+'/rest/v1/commandes?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/commandes?id=eq.'+id,{
 method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json'},
 body:JSON.stringify({statut:'VALIDEE'})
 });
@@ -2394,11 +2397,11 @@ if(!nom){alert('Le nom est obligatoire.');return}
 var data={nom:nom,email:document.getElementById('co-email').value.trim()||null,tel:document.getElementById('co-tel').value.trim()||null,blocked:document.getElementById('co-blocked').value==='true',notes:document.getElementById('co-notes').value.trim()||null};
 try{
 if(coEditId){
-await fetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+coEditId,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify(data)});
+await sbFetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+coEditId,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify(data)});
 showSaved('Client modifie');
 }else{
 data.id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('x'+Date.now()+Math.random().toString(36).slice(2));
-await fetch(SUPABASE_URL+'/rest/v1/clients_order',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),body:JSON.stringify(data)});
+await sbFetch(SUPABASE_URL+'/rest/v1/clients_order',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),body:JSON.stringify(data)});
 showSaved('Client ajoute');
 }
 closeClientOrder();await loadClientsOrder();
@@ -2406,7 +2409,7 @@ closeClientOrder();await loadClientsOrder();
 }
 async function toggleBlockClient(id,block){
 try{
-await fetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+id,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({blocked:block})});
+await sbFetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+id,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({blocked:block})});
 var c=clientsOrderData.find(function(x){return x.id===id});if(c)c.blocked=block;
 renderClientsOrder();showSaved(block?'Client bloque':'Client debloque');
 }catch(e){alert('Erreur: '+e.message)}
@@ -2415,7 +2418,7 @@ async function deleteClientOrder(id){
 var c=clientsOrderData.find(function(x){return x.id===id});
 if(!confirm('Supprimer le client "'+((c&&c.nom)||'')+'" ? Son compte de connexion eventuel ne sera pas supprime.'))return;
 try{
-await fetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+id,{method:'DELETE',headers:sbHeaders()});
+await sbFetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+id,{method:'DELETE',headers:sbHeaders()});
 clientsOrderData=clientsOrderData.filter(function(x){return x.id!==id});renderClientsOrder();showSaved('Client supprime');
 }catch(e){alert('Erreur: '+e.message)}
 }
@@ -2506,7 +2509,7 @@ return '<tr>'+
 
 async function updateProfileField(id,field,value){
 try{
-await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
 method:'PATCH',headers:sbHeaders(),
 body:JSON.stringify({[field]:value})
 });
@@ -2517,7 +2520,7 @@ showSaved('Profil mis à jour');
 async function updateProfileCodes(id,value){
 var codes=value.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s);
 try{
-await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
 method:'PATCH',headers:sbHeaders(),
 body:JSON.stringify({agent_codes:codes})
 });
@@ -2558,7 +2561,6 @@ headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
 });
 var signData=await signRes.json();
-console.log('Signup response:',signData);
 if(signData.error){alert('Erreur création compte: '+(signData.error.message||JSON.stringify(signData.error)));return}
 // Extract user ID from response (handles both confirmed and unconfirmed)
 var userId=signData.id||signData.user?.id;
@@ -2593,7 +2595,7 @@ async function deleteAgent(id,code){
 if(!confirm('Supprimer l\'agent '+code+' ? Cette action est irréversible.'))return;
 try{
 // Delete profile
-await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
+await sbFetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
 method:'DELETE',headers:sbHeaders()
 });
 showSaved('Agent '+code+' supprimé');
@@ -2695,4 +2697,4 @@ checkSession();
 
 
 </body>
-</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+</html>                                                                                                

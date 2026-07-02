@@ -14,9 +14,9 @@ cloisonnement par agent via Row Level Security.
 |---|---|---|
 | `admin` (MBO) | Tout | Lecture, écriture, gestion des profils |
 | `manager` (LCB) | Tout | Lecture, écriture (pas de gestion de profils) |
-| `agent` | Cloisonné à son `code_agent` | Lecture/écriture sur ses propres données. CA masqué. |
+| `agent` | Cloisonné à son `code_agent` | Lecture/écriture sur ses propres données. CA masqué **côté UI seulement** (⚠ voir note). |
 
-Le cloisonnement est appliqué **côté serveur** (RLS Supabase) et **côté UI**.
+Le cloisonnement des **lignes** est appliqué **côté serveur** (RLS Supabase). Le masquage du **CA**, lui, n'est fait qu'**côté UI** (`canSeeAll()`) : la colonne `ca` des contacts d'un agent est tout de même envoyée à son navigateur. Pour un masquage réel côté serveur, voir `db/rls_hardening.sql` (Partie E, option 3).
 
 ---
 
@@ -76,12 +76,4 @@ Pour une migration SQL :
 ## Sécurité
 
 - ❌ Ne jamais committer la clé `service_role` Supabase
-- ❌ Ne jamais désactiver RLS en production
-- ✅ Tester chaque modification avec un compte `agent` avant push
-- ✅ Auditer régulièrement les policies (`SELECT * FROM pg_policies WHERE schemaname = 'public';`)
-
----
-
-## Auteur
-
-Maximilien Bonne (MBO) — Free Spirits Distribution
+- ❌ N

@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 :root{--bg:#f4efe6;--navy:#211a15;--copper:#b87333;--copper-h:#9a5f2a;--green:#6f8a4f;--red:#bf7d63;--cream:#f4ede2;--border:#e6ddcf;--muted:#c3b5a4;--text:#3d3430;--text-light:#9a8a78;--card:#fff;--radius:4px;--shadow:0 1px 3px rgba(43,33,27,.07)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -314,9 +314,9 @@ function searchClients(val){
   dd.className='client-dropdown';
   dd.innerHTML=results.map(function(c,i){
     return '<div class="client-item" onclick="selectClient('+i+',this)" data-idx="'+i+'">'+
-      '<div><span class="ci-name">'+(c.enseigne||c.nom||'')+'</span><br>'+
-      '<span class="ci-details">'+(c.ville||'')+' '+(c.departement||'')+' — '+(c.email||'')+'</span></div>'+
-      '<span class="ci-badge">'+(c.agent||'')+'</span></div>';
+      '<div><span class="ci-name">'+esc(c.enseigne||c.nom||'')+'</span><br>'+
+      '<span class="ci-details">'+esc(c.ville||'')+' '+esc(c.departement||'')+' — '+esc(c.email||'')+'</span></div>'+
+      '<span class="ci-badge">'+esc(c.agent||'')+'</span></div>';
   }).join('');
   dd._results=results;
 }
@@ -482,8 +482,8 @@ function renderLines(){
       '<td style="font-weight:600">'+esc(l.name)+'</td>'+
       '<td><span style="background:var(--cream);padding:1px 6px;border-radius:8px;font-size:11px">'+esc(l.category)+'</span></td>'+
       '<td>'+esc(l.vol||'')+'</td>'+
-      '<td>'+l.pcb+'</td>'+
-      '<td style="font-weight:700">'+l.qty+'</td>'+
+      '<td>'+esc(l.pcb)+'</td>'+
+      '<td style="font-weight:700">'+esc(l.qty)+'</td>'+
       '<td>'+fmt(l.hdht)+'</td>'+
       '<td>'+(l.animation?'<span style="color:var(--green);font-weight:600">Anim: 1 btl -25%</span>':'—')+'</td>'+
       '<td>'+fmt(l.animation ? Math.round((l.hdht*(l.qty-l.anim_qty)+l.hdht_anim*l.anim_qty)/l.qty*100)/100 : l.hdht)+'</td>'+
@@ -510,7 +510,8 @@ function renderLines(){
 }
 
 function fmt(n){ return (n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'; }
-function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
+function esc(s){ if(s==null)return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function csvCell(v){ if(typeof v==='number'&&isFinite(v))return String(v); var s=(v==null?'':String(v)); if(/^[=+\-@\t\r]/.test(s))s="'"+s; return '"'+s.replace(/"/g,'""')+'"'; }
 
 // === PDF EXPORT ===
 function exportPDF(){
@@ -857,7 +858,7 @@ function exportCSV(){
   if(!lines.length){alert('Le bon est vide.');return;}
   let csv = 'Ref;Produit;Categorie;Vol;PCB;Qte;HDHT Unit;Animation;HDHT Net;Droits;HT Unit;Total HT\n';
   lines.forEach(function(l){
-    csv += [l.ref,'"'+l.name+'"',l.category,l.vol,l.pcb,l.qty,n2(l.hdht),l.animation?'1 btl -25%':'',n2(l.hdht_net),n2(l.droits),n2(l.ht_unit),n2(l.total_ht)].join(';')+'\n';
+    csv += [l.ref,l.name,l.category,l.vol,l.pcb,l.qty,n2(l.hdht),l.animation?'1 btl -25%':'',n2(l.hdht_net),n2(l.droits),n2(l.ht_unit),n2(l.total_ht)].map(csvCell).join(';')+'\n';
   });
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');

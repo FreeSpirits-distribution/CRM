@@ -27,13 +27,15 @@ Manager : LCB (plusieurs comptes possibles, visibilité totale, sans gestion de 
 - RLS activée sur toutes les tables sensibles
 - Agent : voit uniquement les lignes où `code_agent = (SELECT code_agent FROM profiles WHERE id = auth.uid())`
 - Manager + admin : SELECT sans restriction
-- Le CA n'est PAS visible côté agent (filtre RLS + masquage UI dans `index.html`)
+- ⚠ Le CA des contacts d'un agent lui est techniquement ENVOYÉ (le RLS filtre les lignes, pas la colonne `ca`). Le masquage est UNIQUEMENT côté UI (`canSeeAll()`). Pour un masquage réel côté serveur, voir `db/rls_hardening.sql` (Partie E, option 3).
 - Seul `admin` accède au panneau de gestion des profils
 
 ## Fichiers du repo
 - `index.html` (~152 Ko) — CRM principal, monolithique. À splitter à terme.
 - `proforma.html` (~40 Ko) — Générateur de proforma client.
-- `supabase_schema_v2.sql` — *à versionner dans le repo* (actuellement seulement en local)
+- `db/rls_hardening.sql` — **policies RLS + fonctions versionnées** (baseline réelle + durcissement, idempotent). Point de vérité RLS du repo.
+- `db/audit_rls.sql` — script d'audit RLS 100 % lecture seule (projet prod `dlpzxngnphxuvopcxenf`)
+- `supabase_schema_v2.sql` — schéma de tables complet *encore à versionner* (les policies, elles, le sont via `db/`)
 - `GUIDE_DEPLOIEMENT_CRM_V2.pdf` — *à versionner aussi, ou à mettre dans `/docs`*
 
 ## Conventions
@@ -66,11 +68,4 @@ Manager : LCB (plusieurs comptes possibles, visibilité totale, sans gestion de 
 
 ## À éviter
 - Ne pas désactiver RLS, même temporairement, en production
-- Ne pas introduire React/Vue/Svelte sans validation MBO
-- Ne pas committer de PDF ou de dump de base sans purge des données clients réelles
-- Ne pas casser la rétrocompatibilité des liens (clients agents commerciaux ont des bookmarks)
-
-## Profil utilisateur
-Maximilien (MBO) — commercial spiritueux, code en autodidacte, préfère les solutions
-robustes, simples, à faible coût de maintenance. Réponses attendues : structurées,
-techniques, avec arbitrages clairs et plans pas à pas.
+- Ne pas introduire React/Vue/Svelte sans validati
