@@ -219,7 +219,6 @@ async function loadCatalog(){
     var res=await fetch(SUPABASE_URL+'/rest/v1/produits?select=*&order=category,name',{headers:headers});
     if(res.ok){
       CATALOG=await res.json();
-      console.log('Catalogue: '+CATALOG.length+' produits chargés depuis Supabase');
     }else{console.error('Catalogue load error:',res.status)}
   }catch(e){console.error('Catalogue fetch error:',e)}
   buildDatalist();
@@ -296,7 +295,6 @@ async function loadCRMContacts(){
       offset+=1000;
     }
     crmContacts=all;
-    console.log('CRM: '+crmContacts.length+' contacts charg\u00e9s');
   }catch(e){console.error('CRM load error',e);crmContacts=[];updateCRMStatus(false)}
 }
 

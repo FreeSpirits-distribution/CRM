@@ -2284,7 +2284,6 @@ doc.text(n2(p.tva)+' €',boxX+boxW-4,y+15,{align:'right'});
 doc.setDrawColor(...copper);doc.line(boxX+4,y+19,boxX+boxW-4,y+19);
 doc.setFontSize(11);doc.setTextColor(...copper);
 doc.text('Total TTC:',boxX+4,y+27);doc.text(n2(p.ttc)+' €',boxX+boxW-4,y+27,{align:'right'});
-function n2(v){return(v||0).toFixed(2)}
 // Conditions
 doc.setFontSize(7);doc.setTextColor(...gray);doc.setFont('helvetica','normal');
 var cy=y+4;
@@ -2470,10 +2469,9 @@ populateTransferCodes();
 }
 
 async function loadProfiles(){
-if(!isAdminRole()){console.log('loadProfiles: not admin, skip');return}
+if(!isAdminRole()){return}
 const tb=document.getElementById('admin-tbody');
 try{
-console.log('loadProfiles: fetching profiles...');
 const res=await fetch(SUPABASE_URL+'/rest/v1/profiles?select=*&order=agent_code',{
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
@@ -2483,7 +2481,6 @@ tb.innerHTML='<tr><td colspan="8" style="color:var(--red);padding:20px">Erreur c
 return;
 }
 const profiles=await res.json();
-console.log('loadProfiles: '+profiles.length+' profils');
 document.getElementById('admin-count').textContent=profiles.length+' agent(s)';
 if(!profiles.length){
 tb.innerHTML='<tr><td colspan="8" style="color:var(--gray-40);padding:20px">Aucun profil trouvé.</td></tr>';
@@ -2577,7 +2574,6 @@ body:JSON.stringify({agent_code:code,display_name:name,role:role,agent_codes:cod
 if(patchRes.ok){
 var patchText=await patchRes.text();
 if(!patchText||patchText==='[]'){
-console.log('Profile not found after trigger, inserting manually...');
 await fetch(SUPABASE_URL+'/rest/v1/profiles',{
 method:'POST',
 headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),
