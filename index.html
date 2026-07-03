@@ -646,6 +646,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="common.js"></script>
 <script>
 let D=[]
 let currentAgent='',currentRole='',currentAgentCodes=[],currentDisplayName='';
@@ -772,9 +773,7 @@ function openP(i){const c=F[i];if(!c)return;panelClientId=c.id;panelIsNew=false;
 function closeP(){panelEditMode=false;panelIsNew=false;panelDraftClient=null;document.getElementById('ov').classList.remove('open');document.getElementById('pn').classList.remove('open')}
 function rw(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v?esc(v):'-')+'</span></div>'}
 function rwHTML(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v||'-')+'</span></div>'}
-function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 async function sbFetch(url,opts){const res=await fetch(url,opts);if(!res.ok){let t='';try{t=await res.text()}catch(_){}throw new Error('HTTP '+res.status+(t?' — '+t:''))}return res}
-function csvCell(v){if(typeof v==='number'&&isFinite(v))return String(v);var s=(v==null?'':String(v));if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 function resetF(){document.getElementById('q').value='';document.getElementById('fr').value='';document.getElementById('fd').value='';document.getElementById('fa').value='';document.getElementById('fs').value='';ac.clear();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));af()}
 function openPById(id){const c=D.find(x=>x.id===id);if(!c)return;panelClientId=id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
 function openNewClientPanel(){
@@ -1799,8 +1798,6 @@ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CA
 }
 
 // ========= SUPABASE API =========
-const SUPABASE_URL = "https://dlpzxngnphxuvopcxenf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscHp4bmducGh4dXZvcGN4ZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzAxNzAsImV4cCI6MjA5MzA0NjE3MH0.HjuNIqJ0J05dG7LnhJco5BV1epLZQrrJZK2Hfr4_fIs";
 let supabaseToken = null;
 
 function sbHeaders(){
@@ -2240,29 +2237,11 @@ var doc=new jsPDF('p','mm','a4');
 var w=doc.internal.pageSize.getWidth();
 var copper=[184,115,51],navy=[44,36,32],gray=[122,110,99];
 // Header
-doc.setFillColor(44,36,32);doc.rect(0,0,w,28,'F');
-doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bolditalic');doc.text('free',15,16);
-doc.setFont('helvetica','bold');doc.setTextColor(184,115,51);doc.text('SPIRITS',32,16);
-doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(200,200,200);doc.text('DISTRIBUTION',15,23);
-doc.setTextColor(184,115,51);doc.setFontSize(9);doc.text('PROFORMA',w-15,12,{align:'right'});
-doc.setTextColor(255,255,255);doc.setFontSize(10);doc.text(p.commande||'',w-15,18,{align:'right'});
-doc.setFontSize(8);doc.text(p.date||'',w-15,23,{align:'right'});
-var y=36;
+pdfHeader(doc,w,p.commande,p.date);
 // Client info
-doc.setFillColor(245,240,234);doc.roundedRect(12,y,w-24,28,2,2,'F');
-doc.setTextColor(...navy);doc.setFontSize(10);doc.setFont('helvetica','bold');
-doc.text(p.client||'Client',16,y+8);
-doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...gray);
-if(p.no_client)doc.text('N° Client: '+p.no_client,16,y+14);
-var adr=[p.client_adresse,[p.client_cp,p.client_ville].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-if(adr)doc.text(adr,16,y+20);
-var cLine=[p.client_tel,p.client_email].filter(Boolean).join(' — ');
-if(cLine)doc.text(cLine,16,y+25);
-doc.text('Agent: '+(p.agent_code||''),w-16,y+8,{align:'right'});
-y+=34;
+var y=pdfClientBox(doc,w,36,{client:p.client,noClient:p.no_client,adresse:p.client_adresse,cp:p.client_cp,ville:p.client_ville,tel:p.client_tel,email:p.client_email,agent:p.agent_code});
 // Table
 if(lignes.length){
-var n2=function(v){return(v||0).toFixed(2)};
 var tableData=lignes.map(function(l){return[l.ref||'',l.name||l.nom||'',l.category||'',l.vol||'',l.pcb||'',l.qty||0,n2(l.hdht),l.animation?'1 btl -25%':'',n2(l.ht_unit),n2(l.droits),n2(l.total_ht)]});
 doc.autoTable({startY:y,
 head:[['Ref','Produit','Cat.','Vol.','PCB','Qté','HDHT','Anim.','HT Unit','Droits','Total HT']],
@@ -2274,16 +2253,7 @@ margin:{left:12,right:12}});
 y=doc.lastAutoTable.finalY+8;
 }
 // Totals
-var boxW=70,boxX=w-12-boxW;
-doc.setFillColor(245,240,234);doc.roundedRect(boxX,y,boxW,32,2,2,'F');
-doc.setFontSize(8);doc.setTextColor(...gray);
-doc.text('Total HT:',boxX+4,y+8);doc.text('TVA (20%):',boxX+4,y+15);
-doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...navy);
-doc.text(n2(p.ht)+' €',boxX+boxW-4,y+8,{align:'right'});
-doc.text(n2(p.tva)+' €',boxX+boxW-4,y+15,{align:'right'});
-doc.setDrawColor(...copper);doc.line(boxX+4,y+19,boxX+boxW-4,y+19);
-doc.setFontSize(11);doc.setTextColor(...copper);
-doc.text('Total TTC:',boxX+4,y+27);doc.text(n2(p.ttc)+' €',boxX+boxW-4,y+27,{align:'right'});
+pdfTotalsBox(doc,w,y,p.ht,p.tva,p.ttc);
 // Conditions
 doc.setFontSize(7);doc.setTextColor(...gray);doc.setFont('helvetica','normal');
 var cy=y+4;
@@ -2291,12 +2261,7 @@ if(p.paiement){doc.text('Paiement: '+p.paiement,14,cy);cy+=5}
 if(p.franco){doc.text('Livraison: '+p.franco,14,cy);cy+=5}
 if(p.notes){doc.text(doc.splitTextToSize('Notes: '+p.notes,90),14,cy)}
 // Footer
-doc.setFontSize(9);doc.setFont('helvetica','bolditalic');doc.setTextColor(184,115,51);
-doc.text('Proforma informative — ne constitue pas une facture',w/2,doc.internal.pageSize.getHeight()-18,{align:'center'});
-var pageH=doc.internal.pageSize.getHeight();
-doc.setFillColor(44,36,32);doc.rect(0,pageH-12,w,12,'F');
-doc.setTextColor(184,115,51);doc.setFontSize(7);doc.setFont('helvetica','normal');
-doc.text('Free Spirits Distribution — 53 rue de Montreuil, 75011 Paris — free-spirits.fr',w/2,pageH-5,{align:'center'});
+pdfFooter(doc,w);
 doc.save('Proforma_'+(p.client||'').replace(/[^a-zA-Z0-9]/g,'_')+'_'+(p.commande||'')+'.pdf');
 }
 

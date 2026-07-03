@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="common.js"></script>
 <style>
 :root{--bg:#f4efe6;--navy:#211a15;--copper:#b87333;--copper-h:#9a5f2a;--green:#6f8a4f;--red:#bf7d63;--cream:#f4ede2;--border:#e6ddcf;--muted:#c3b5a4;--text:#3d3430;--text-light:#9a8a78;--card:#fff;--radius:4px;--shadow:0 1px 3px rgba(43,33,27,.07)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -203,8 +204,6 @@ label{font-family:'Archivo',sans-serif}
 let CATALOG = []; // Loaded from Supabase
 
 // === SUPABASE CONFIG ===
-const SUPABASE_URL = "https://dlpzxngnphxuvopcxenf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscHp4bmducGh4dXZvcGN4ZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzAxNzAsImV4cCI6MjA5MzA0NjE3MH0.HjuNIqJ0J05dG7LnhJco5BV1epLZQrrJZK2Hfr4_fIs";
 let sbToken = null;
 let crmContacts = [];
 let userRole = '';
@@ -508,8 +507,6 @@ function renderLines(){
 }
 
 function fmt(n){ return (n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'; }
-function esc(s){ if(s==null)return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-function csvCell(v){ if(typeof v==='number'&&isFinite(v))return String(v); var s=(v==null?'':String(v)); if(/^[=+\-@\t\r]/.test(s))s="'"+s; return '"'+s.replace(/"/g,'""')+'"'; }
 
 // === PDF EXPORT ===
 function exportPDF(){
@@ -522,61 +519,15 @@ function exportPDF(){
   const gray = [122,110,99];
   
   // Header
-  doc.setFillColor(44,36,32);
-  doc.rect(0,0,w,28,"F");
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(18);
-  doc.setFont('helvetica','bolditalic');
-  doc.text('free',15,16);
-  doc.setFont('helvetica','bold');
-  doc.setTextColor(184,115,51);
-  doc.text('SPIRITS',32,16);
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(10);
-  doc.setTextColor(200,200,200);
-  doc.text('DISTRIBUTION',15,23);
-  
-  // Proforma title
-  doc.setTextColor(184,115,51);
-  doc.setFontSize(9);
-  doc.text('PROFORMA', w-15, 12, {align:'right'});
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(10);
   const pfNum = document.getElementById('pf-numero').value || 'PF-'+new Date().toISOString().slice(0,10);
-  doc.text(pfNum, w-15, 18, {align:'right'});
   const pfDate = document.getElementById('pf-date').value;
-  doc.setFontSize(8);
-  doc.text(pfDate ? new Date(pfDate).toLocaleDateString('fr-FR') : '', w-15, 23, {align:'right'});
+  pdfHeader(doc,w,pfNum,pfDate ? new Date(pfDate).toLocaleDateString('fr-FR') : '');
   
   let y = 36;
   
   // Client info
-  doc.setFillColor(245,240,234);
-  doc.roundedRect(12,y,w-24,28,2,2,'F');
-  doc.setTextColor(...navy);
-  doc.setFontSize(10);
-  doc.setFont('helvetica','bold');
   const clientName = document.getElementById('pf-client').value || 'Client';
-  doc.text(clientName, 16, y+8);
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...gray);
-  const noClient = document.getElementById('pf-noclient').value;
-  if(noClient) doc.text('N\u00b0 Client: '+noClient, 16, y+14);
-  const adresse = document.getElementById('pf-adresse').value;
-  const ville = document.getElementById('pf-ville').value;
-  const cp = document.getElementById('pf-cp').value;
-  const adresseFull = [adresse, [cp,ville].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-  if(adresseFull) doc.text(adresseFull, 16, y+20);
-  const tel = document.getElementById('pf-tel').value;
-  const email = document.getElementById('pf-email').value;
-  let contactLine = [tel,email].filter(Boolean).join(' \u2014 ');
-  if(contactLine) doc.text(contactLine, 16, y+25);
-  
-  const agent = document.getElementById('pf-agent').value;
-  doc.text('Agent: '+(agent||''), w-16, y+8, {align:'right'});
-  
-  y += 34;
+  y = pdfClientBox(doc,w,y,{client:clientName,noClient:document.getElementById('pf-noclient').value,adresse:document.getElementById('pf-adresse').value,cp:document.getElementById('pf-cp').value,ville:document.getElementById('pf-ville').value,tel:document.getElementById('pf-tel').value,email:document.getElementById('pf-email').value,agent:document.getElementById('pf-agent').value});
   
   // Table
   const tableData = lines.map(function(l){
@@ -621,25 +572,7 @@ function exportPDF(){
   y = doc.lastAutoTable.finalY + 8;
   
   // Totals box
-  const boxW = 70;
-  const boxX = w - 12 - boxW;
-  doc.setFillColor(245,240,234);
-  doc.roundedRect(boxX, y, boxW, 32, 2, 2, 'F');
-  doc.setFontSize(8);
-  doc.setTextColor(...gray);
-  doc.text('Total HT:', boxX+4, y+8);
-  doc.text('TVA (20%):', boxX+4, y+15);
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...navy);
-  doc.text(n2(totHT)+' \u20ac', boxX+boxW-4, y+8, {align:'right'});
-  doc.text(n2(tva)+' \u20ac', boxX+boxW-4, y+15, {align:'right'});
-  doc.setDrawColor(...copper);
-  doc.line(boxX+4, y+19, boxX+boxW-4, y+19);
-  doc.setFontSize(11);
-  doc.setTextColor(...copper);
-  doc.text('Total TTC:', boxX+4, y+27);
-  doc.text(n2(ttc)+' \u20ac', boxX+boxW-4, y+27, {align:'right'});
+  pdfTotalsBox(doc,w,y,totHT,tva,ttc);
   
   // Conditions (left side)
   doc.setFontSize(7);
@@ -658,20 +591,8 @@ function exportPDF(){
     doc.text(noteLines, 14, cy);
   }
   
-  // Mention proforma informative
-  doc.setFontSize(9);
-  doc.setFont('helvetica','bolditalic');
-  doc.setTextColor(184,115,51);
-  doc.text('Proforma informative — ne constitue pas une facture', w/2, doc.internal.pageSize.getHeight()-18, {align:'center'});
-
-  // Footer
-  const pageH = doc.internal.pageSize.getHeight();
-  doc.setFillColor(44,36,32);
-  doc.rect(0, pageH-12, w, 12, 'F');
-  doc.setTextColor(184,115,51);
-  doc.setFontSize(7);
-  doc.setFont('helvetica','normal');
-  doc.text('Free Spirits Distribution — 53 rue de Montreuil, 75011 Paris — free-spirits.fr', w/2, pageH-5, {align:'center'});
+  // Pied de page
+  pdfFooter(doc,w);
   
   // Save
   const filename = 'Proforma_'+(clientName.replace(/[^a-zA-Z0-9]/g,'_'))+'_'+pfNum+'.pdf';
@@ -679,7 +600,6 @@ function exportPDF(){
   doc.save(filename);
 }
 
-function n2(v){ return (v||0).toFixed(2); }
 
 async function saveToCA(){
   if(!lines.length){alert('Le bon est vide.');return;}
