@@ -543,11 +543,12 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;padding:16px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
 <div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Code source</label><br><select id="tr-src" class="sel"></select></div>
 <div style="font-size:22px;color:var(--blue);font-weight:800;padding-bottom:4px">&rarr;</div>
-<div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Code cible</label><br><select id="tr-tgt" class="sel"></select></div>
+<div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Code cible (existant ou nouveau)</label><br><input id="tr-tgt" class="sel" list="tr-tgt-list" placeholder="choisir ou taper..." autocomplete="off" style="text-transform:uppercase"><datalist id="tr-tgt-list"></datalist></div>
 <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="tr-contacts" checked> Clients</label>
 <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="tr-cmd" checked> Commandes</label>
 <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="tr-rel" checked> Relances</label>
-<button class="btn btn-blue" onclick="runTransfer()">Transf&eacute;rer</button>
+<button class="btn btn-blue" onclick="runTransfer()">Transf&eacute;rer / Renommer</button>
+<button class="btn btn-ghost" onclick="deleteAgentCode()" style="color:var(--red);border-color:var(--red)">Supprimer le code source</button>
 <span id="tr-status" style="font-size:12px;color:var(--gray-40)"></span>
 </div>
 <div class="ca-header" style="margin-top:32px">
@@ -2396,17 +2397,37 @@ clientsOrderData=clientsOrderData.filter(function(x){return x.id!==id});renderCl
 
 // ===== Transfert / fusion de codes agents =====
 function populateTransferCodes(){
-var src=document.getElementById('tr-src'),tgt=document.getElementById('tr-tgt');
-if(!src||!tgt)return;
+var src=document.getElementById('tr-src'),dl=document.getElementById('tr-tgt-list');
+if(!src)return;
 var codes=new Set();
 (D||[]).forEach(function(c){if(c.agent)codes.add(c.agent)});
 var list=[...codes].sort();
-var opts='<option value="">-- choisir --</option>'+list.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('');
-src.innerHTML=opts;tgt.innerHTML=opts;
+src.innerHTML='<option value="">-- choisir --</option>'+list.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('');
+if(dl)dl.innerHTML=list.map(function(c){return '<option value="'+esc(c)+'"></option>'}).join('');
+}
+async function deleteAgentCode(){
+var src=document.getElementById('tr-src').value;
+var st=document.getElementById('tr-status');
+if(!src){alert('Choisis d\'abord un code source a supprimer.');return}
+if(!confirm('Supprimer le code agent "'+src+'" ?\nLes clients, commandes et relances rattaches seront DESASSIGNES (code vide).\nCette action met a jour la base.'))return;
+st.textContent='Suppression en cours...';st.style.color='var(--gray-40)';
+var report=[];
+try{
+var r1=await fetch(SUPABASE_URL+'/rest/v1/contacts?agent=eq.'+encodeURIComponent(src),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({agent:''})});
+var a1=r1.ok?await r1.json():[];report.push(a1.length+' client(s)');
+var r2=await fetch(SUPABASE_URL+'/rest/v1/commandes?agent_code=eq.'+encodeURIComponent(src),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({agent_code:''})});
+var a2=r2.ok?await r2.json():[];report.push(a2.length+' commande(s)');
+var r3=await fetch(SUPABASE_URL+'/rest/v1/relances?code_agent=eq.'+encodeURIComponent(src),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({code_agent:''})});
+var a3=r3.ok?await r3.json():[];report.push(a3.length+' relance(s)');
+st.textContent='Code "'+src+'" supprime: '+report.join(', ')+' desassignes.';st.style.color='var(--green)';
+showSaved('Code '+src+' supprime');
+(D||[]).forEach(function(c){if(c.agent===src)c.agent=''});
+populateTransferCodes();
+}catch(e){st.textContent='Erreur: '+e.message;st.style.color='var(--red)';}
 }
 async function runTransfer(){
 var src=document.getElementById('tr-src').value;
-var tgt=document.getElementById('tr-tgt').value;
+var tgt=(document.getElementById('tr-tgt').value||'').trim().toUpperCase();
 var st=document.getElementById('tr-status');
 if(!src||!tgt){alert('Choisis un code source et un code cible.');return}
 if(src===tgt){alert('Le code source et le code cible sont identiques.');return}
