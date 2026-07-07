@@ -1911,7 +1911,7 @@ let allContacts=[];
 let offset=0;
 const limit=1000;
 while(true){
-const res=await fetch(SUPABASE_URL+'/rest/v1/contacts?select=*&order=score.desc&offset='+offset+'&limit='+limit,{
+const res=await fetch(SUPABASE_URL+'/rest/v1/contacts?select=id,nom,contact,type,classif,adresse,cp,ville,dept,region,mbo,tel,port,email,ca,prio,agent,cmd,relance,comment,src,lat,lon,distVDA,distHSC,score,n_clt,nb_factures&order=score.desc&offset='+offset+'&limit='+limit,{
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
 if(!res.ok)throw new Error('Contacts load failed: '+res.status);
@@ -1934,7 +1934,7 @@ F=D.slice();
 
 status.textContent='Chargement du CA...';
 // Load CA
-const caRes=await fetch(SUPABASE_URL+'/rest/v1/commandes?select=*&order=date.desc',{
+const caRes=await fetch(SUPABASE_URL+'/rest/v1/commandes?select=commande,no_client,date,client,ttc,ht,tva,hdht,droits,bouteilles,statut&order=date.desc',{
 headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}
 });
 if(caRes.ok){
