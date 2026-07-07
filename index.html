@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow-x:hidden;max-width:100%}
 :root{--bg:#f4efe6;--navy:#211a15;--blue:#b87333;--blue-h:#9a5f2a;--green:#6f8a4f;--green-d:#586b38;--orange:#c79a4e;--red:#bf7d63;--purple:#8a6b86;--gray-05:#f4ede2;--gray-10:#e6ddcf;--gray-20:#c3b5a4;--gray-40:#9a8a78;--gray-60:#3d3430;--card:#fff;--radius:4px;--shadow:0 1px 3px rgba(43,33,27,.07)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--gray-60);font-size:14px}
 .nav{background:var(--navy);color:#fff;display:flex;align-items:center;height:48px;padding:0 20px;position:sticky;top:0;z-index:1000}
@@ -224,9 +225,10 @@ td.nom-cell{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--
 /* ========= MOBILE / IPAD ========= */
 @media(max-width:1024px){
 .nav{flex-wrap:wrap;height:auto;padding:8px 12px;gap:6px}
-.nav-tabs{width:100%;justify-content:center}
+.nav-tabs{width:100%;justify-content:center;flex-wrap:wrap;height:auto;gap:2px 4px}
 .nav-tab{padding:8px 14px;font-size:12px;min-height:40px}
 .nav-right{width:100%;justify-content:center;flex-wrap:wrap}
+.chips{flex-wrap:wrap}
 .toolbar{flex-direction:column;align-items:stretch}
 .search{width:100%}
 .kpis{grid-template-columns:repeat(2,1fr)}
