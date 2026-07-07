@@ -25,15 +25,19 @@ function n2(v){return (v||0).toFixed(2);}
    Chaque appelant garde SA table (colonnes différentes) et ses conditions. */
 const PDF_COPPER=[184,115,51], PDF_NAVY=[44,36,32], PDF_GRAY=[122,110,99];
 
-// En-tête : barre navy + logo + bloc PROFORMA / numéro / date
+// En-tête : bandeau clair + logo image + bloc PROFORMA / numéro / date
 function pdfHeader(doc,w,numero,date){
-  doc.setFillColor(44,36,32);doc.rect(0,0,w,28,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bolditalic');doc.text('free',15,16);
-  doc.setFont('helvetica','bold');doc.setTextColor(184,115,51);doc.text('SPIRITS',32,16);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(200,200,200);doc.text('DISTRIBUTION',15,23);
-  doc.setTextColor(184,115,51);doc.setFontSize(9);doc.text('PROFORMA',w-15,12,{align:'right'});
-  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.text(numero||'',w-15,18,{align:'right'});
-  doc.setFontSize(8);doc.text(date||'',w-15,23,{align:'right'});
+  doc.setFillColor(255,255,255);doc.rect(0,0,w,30,'F');
+  if(typeof FS_LOGO_PNG!=='undefined'){
+    doc.addImage(FS_LOGO_PNG,'PNG',12,7,39.7,16);
+  }else{
+    doc.setTextColor(...PDF_NAVY);doc.setFontSize(16);doc.setFont('helvetica','bolditalic');doc.text('free',12,17);
+    doc.setFont('helvetica','bold');doc.setTextColor(...PDF_COPPER);doc.text('SPIRITS',25,17);
+  }
+  doc.setTextColor(...PDF_COPPER);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('PROFORMA',w-12,13,{align:'right'});
+  doc.setTextColor(...PDF_NAVY);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text(numero||'',w-12,19,{align:'right'});
+  doc.setFontSize(8);doc.setTextColor(...PDF_GRAY);doc.text(date||'',w-12,24,{align:'right'});
+  doc.setDrawColor(...PDF_COPPER);doc.setLineWidth(0.6);doc.line(12,30,w-12,30);
 }
 
 // Bloc client (retourne le y sous le bloc). c = {client,noClient,adresse,cp,ville,tel,email,agent}
