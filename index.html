@@ -340,6 +340,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="nav-right">
 <div class="nav-badge" id="nav-badge">Secteur MBO</div>
 <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportCSV()">Export CSV</button>
+<button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportVCard()" title="Fichier .vcf à importer dans Contacts iPhone/Android">Export Contacts</button>
 <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="logout()">D&eacute;connexion</button>
 </div>
 </div>
@@ -1622,6 +1623,26 @@ async function markRelanceDone(id){var c=D.find(function(x){return String(x.id)=
 // ---- switchTab already handles tour init ----
 
 function exportCSV(){const showCA=canSeeAll();const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;'+(showCA?'CA;':'')+'PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>{var row=[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email];if(showCA)row.push(c.ca);row=row.concat([c.prio,c.agent,c.distVDA,c.distHSC,c.src]);return row.map(csvCell).join(';')}).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
+
+function vcardEsc(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,' ')}
+function exportVCard(){
+if(!F.length){alert('Aucun contact \u00E0 exporter (v\u00E9rifiez les filtres).');return}
+const cards=F.map(function(c){
+const name=vcardEsc(c.contact||c.nom||'Contact');
+const org=vcardEsc(c.nom||'');
+let v='BEGIN:VCARD\r\nVERSION:3.0\r\nN:'+name+';;;;\r\nFN:'+name+'\r\n';
+if(org)v+='ORG:'+org+'\r\n';
+if(c.port)v+='TEL;TYPE=CELL:'+vcardEsc(c.port)+'\r\n';
+if(c.tel)v+='TEL;TYPE=WORK,VOICE:'+vcardEsc(c.tel)+'\r\n';
+if(c.email)v+='EMAIL;TYPE=INTERNET:'+vcardEsc(c.email)+'\r\n';
+if(c.adresse||c.ville||c.cp)v+='ADR;TYPE=WORK:;;'+vcardEsc(c.adresse||'')+';'+vcardEsc(c.ville||'')+';;'+vcardEsc(c.cp||'')+';France\r\n';
+if(c.agent)v+='NOTE:Agent '+vcardEsc(c.agent)+'\r\n';
+v+='END:VCARD';
+return v;
+}).join('\r\n');
+const b=new Blob([cards],{type:'text/vcard;charset=utf-8;'});
+const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_contacts.vcf';a.click()
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeP()});
 
 // ========= CHIFFRE D'AFFAIRES =========
@@ -2558,10 +2579,12 @@ headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
 });
 var signData=await signRes.json();
-if(signData.error){alert('Erreur création compte: '+(signData.error.message||JSON.stringify(signData.error)));return}
+if(!signRes.ok||signData.error){
+var errMsg=(signData.error&&signData.error.message)||signData.error_description||signData.msg||(typeof signData.error==='string'?signData.error:JSON.stringify(signData.error||signData));
+alert('Erreur création compte: '+errMsg);return
+}
 // Extract user ID from response (handles both confirmed and unconfirmed)
 var userId=signData.id||signData.user?.id;
-if(!userId&&signData.identities!==undefined){userId=signData.id}
 if(!userId){alert('Compte créé mais ID non récupéré. Vérifiez dans Supabase Authentication.');closeAddAgent();loadProfiles();return}
 // Wait a moment for trigger to fire, then upsert profile
 await new Promise(r=>setTimeout(r,1000));
