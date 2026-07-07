@@ -1,0 +1,31 @@
+name: Supabase keep-alive
+
+# Empeche la mise en pause du projet Supabase (plan gratuit : pause apres 7 jours
+# sans activite base de donnees). Cette action envoie chaque jour une petite requete
+# REST qui execute une requete SQL -> le compteur d'inactivite est remis a zero.
+#
+# Prerequis : Actions activees sur le repo (Settings > Actions > General).
+# Lancement manuel possible depuis l'onglet "Actions" (bouton Run workflow).
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # tous les jours a 06:17 UTC (marge tres large sous les 7 jours)
+  workflow_dispatch: {}      # permet de declencher a la main
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping REST Supabase (execute une requete DB)
+        env:
+          SUPABASE_URL: https://dlpzxngnphxuvopcxenf.supabase.co
+          # Cle ANON (publique, deja presente dans le front) : aucune fuite supplementaire.
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscHp4bmducGh4dXZvcGN4ZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzAxNzAsImV4cCI6MjA5MzA0NjE3MH0.HjuNIqJ0J05dG7LnhJco5BV1epLZQrrJZK2Hfr4_fIs
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/produits?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "Reponse HTTP : $code"
+          # Echoue (et notifie par email) si le ping ne renvoie pas 200
+          test "$code" = "200"
