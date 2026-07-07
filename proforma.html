@@ -65,7 +65,7 @@ tfoot td{padding:10px 8px;font-weight:800;border-top:2px solid var(--copper);col
 .hidden{display:none}
 @media(max-width:768px){.grid2,.grid3,.summary-grid{grid-template-columns:1fr}.container{padding:12px}}
 @media(max-width:1024px){input,select,textarea{font-size:16px}}
-.client-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:250px;overflow-y:auto;z-index:50}
+.client-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:250px;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:50}
 .client-dropdown.hidden{display:none}
 .client-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--cream);font-size:13px;display:flex;justify-content:space-between;align-items:center}
 .client-item:hover{background:var(--cream)}
@@ -135,7 +135,7 @@ label{font-family:'Archivo',sans-serif}
 <div class="card no-print">
 <h3>Ajouter un produit</h3>
 <div class="grid3">
-<div class="full"><label>Rechercher un produit</label><input type="text" id="pf-search" list="pf-datalist" placeholder="Tapez un nom, une référence ou une catégorie..." oninput="onProductSearch(this.value)"><datalist id="pf-datalist"></datalist></div>
+<div class="full" style="position:relative"><label>Rechercher un produit</label><input type="text" id="pf-search" placeholder="Tapez un nom, une référence ou une catégorie..." oninput="onProductSearch(this.value)" autocomplete="off"><div id="pf-product-dropdown" class="client-dropdown hidden"></div></div>
 </div>
 <div id="pf-product-info" class="hidden"></div>
 <div class="grid3" style="margin-top:10px">
@@ -229,7 +229,6 @@ async function loadCatalog(){
       CATALOG=await res.json();
     }else{console.error('Catalogue load error:',res.status)}
   }catch(e){console.error('Catalogue fetch error:',e)}
-  buildDatalist();
 }
 
 // Init
@@ -271,10 +270,13 @@ async function loadCatalog(){
   } else {
     updateCRMStatus(false);
   }
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   document.addEventListener('click', function(e){
     if(!e.target.closest('#pf-client-search') && !e.target.closest('#pf-client-dropdown')){
       document.getElementById('pf-client-dropdown').className='client-dropdown hidden';
+    }
+    if(!e.target.closest('#pf-search') && !e.target.closest('#pf-product-dropdown')){
+      document.getElementById('pf-product-dropdown').className='client-dropdown hidden';
     }
   });
 })();
@@ -342,32 +344,35 @@ function selectClient(idx,el){
   dd.className='client-dropdown hidden';
 }
 
-function buildDatalist(){
-  const dl = document.getElementById('pf-datalist');
-  dl.innerHTML = '';
-  CATALOG.forEach(function(p){
-    if(p.dispo==='RUPTURE')return; // Rupture définitive = masqué
-    const o = document.createElement('option');
-    o.value = p.name;
-    var lbl = (p.ref ? '['+p.ref+'] ' : '') + p.category + ' — ' + fmt(p.prix_ht) + ' HT';
-    if(p.dispo==='INDISPONIBLE') lbl += ' ⚠ INDISPONIBLE';
-    o.label = lbl;
-    dl.appendChild(o);
-  });
+function onProductSearch(val){
+  const dd=document.getElementById('pf-product-dropdown');
+  selectedProduct=null; hideProductInfo();
+  if(!val||val.length<1){dd.className='client-dropdown hidden';return;}
+  const v=val.toLowerCase();
+  const results=CATALOG.filter(function(p){
+    if(p.dispo==='RUPTURE')return false; // rupture définitive = masqué
+    return p.name.toLowerCase().includes(v)||(p.ref&&p.ref.toLowerCase().includes(v))||p.category.toLowerCase().includes(v);
+  }).slice(0,30);
+  if(!results.length){dd.className='client-dropdown hidden';return;}
+  dd.className='client-dropdown';
+  dd.innerHTML=results.map(function(p,i){
+    var dispoTag='';
+    if(p.dispo==='INDISPONIBLE')dispoTag=' <span style="background:var(--orange);color:#fff;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">INDISPO</span>';
+    return '<div class="client-item" onclick="selectProductFromList('+i+')">'+
+      '<div><span class="ci-name">'+esc(p.name)+'</span>'+dispoTag+'<br>'+
+      '<span class="ci-details">'+(p.ref?'['+esc(p.ref)+'] ':'')+esc(p.category)+(p.vol?' — '+p.vol+'cl':'')+' — '+fmt(p.prix_ht)+' HT</span></div>'+
+      '<span class="ci-badge">'+esc(p.category)+'</span></div>';
+  }).join('');
+  dd._results=results;
 }
 
-function onProductSearch(val){
-  if(!val) { selectedProduct=null; hideProductInfo(); return; }
-  const v = val.toLowerCase();
-  const p = CATALOG.find(function(x){
-    return x.name.toLowerCase() === v || (x.ref && x.ref === v);
-  });
-  if(!p){
-    const partial = CATALOG.find(function(x){ return x.name.toLowerCase().includes(v) || (x.ref && x.ref.includes(v)) || x.category.toLowerCase().includes(v); });
-    if(partial && partial.name.toLowerCase().startsWith(v)){selectProduct(partial);return;}
-    selectedProduct=null; hideProductInfo(); return;
-  }
+function selectProductFromList(idx){
+  const dd=document.getElementById('pf-product-dropdown');
+  const p=dd._results[idx];
+  if(!p)return;
+  document.getElementById('pf-search').value=p.name;
   selectProduct(p);
+  dd.className='client-dropdown hidden';
 }
 
 function selectProduct(p){
