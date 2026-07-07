@@ -2558,10 +2558,12 @@ headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
 });
 var signData=await signRes.json();
-if(signData.error){alert('Erreur création compte: '+(signData.error.message||JSON.stringify(signData.error)));return}
+if(!signRes.ok||signData.error){
+var errMsg=(signData.error&&signData.error.message)||signData.error_description||signData.msg||(typeof signData.error==='string'?signData.error:JSON.stringify(signData.error||signData));
+alert('Erreur création compte: '+errMsg);return
+}
 // Extract user ID from response (handles both confirmed and unconfirmed)
 var userId=signData.id||signData.user?.id;
-if(!userId&&signData.identities!==undefined){userId=signData.id}
 if(!userId){alert('Compte créé mais ID non récupéré. Vérifiez dans Supabase Authentication.');closeAddAgent();loadProfiles();return}
 // Wait a moment for trigger to fire, then upsert profile
 await new Promise(r=>setTimeout(r,1000));
