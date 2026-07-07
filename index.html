@@ -352,6 +352,8 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <select class="sel" id="fd" onchange="af()"><option value="">D&eacute;pt</option><option value="01">01</option><option value="02">02</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option><option value="70">70</option><option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option><option value="76">76</option><option value="77">77</option><option value="78">78</option><option value="79">79</option><option value="80">80</option><option value="81">81</option><option value="82">82</option><option value="83">83</option><option value="84">84</option><option value="85">85</option><option value="86">86</option><option value="87">87</option><option value="88">88</option><option value="89">89</option><option value="90">90</option><option value="91">91</option><option value="92">92</option><option value="93">93</option><option value="94">94</option><option value="95">95</option><option value="972">972</option><option value="974">974</option><option value="98">98</option><option value="AB">AB</option><option value="DP">DP</option></select>
 <span id="fa-wrap"><select class="sel" id="fa" onchange="af()"><option value="">Agent</option><option value="ARA">ARA</option><option value="BAS">BAS</option><option value="BBO">BBO</option><option value="BCH">BCH</option><option value="BRE">BRE</option><option value="BRU">BRU</option><option value="CAG">CAG</option><option value="CBI">CBI</option><option value="CJA">CJA</option><option value="CQU">CQU</option><option value="CSA">CSA</option><option value="DCA">DCA</option><option value="DES">DES</option><option value="FCA">FCA</option><option value="FET">FET</option><option value="FLA">FLA</option><option value="FLE">FLE</option><option value="FVI">FVI</option><option value="GPI">GPI</option><option value="GSA">GSA</option><option value="JBF">JBF</option><option value="JMA">JMA</option><option value="JMO">JMO</option><option value="JWI">JWI</option><option value="KDU">KDU</option><option value="LAM">LAM</option><option value="LCB">LCB</option><option value="LVS">LVS</option><option value="MAC">MAC</option><option value="MBO">MBO</option><option value="MBO (ex-JBF)">MBO (ex-JBF)</option><option value="MJU">MJU</option><option value="MPA">MPA</option><option value="MPE">MPE</option><option value="MRE">MRE</option><option value="NBE">NBE</option><option value="PCR">PCR</option><option value="PMA">PMA</option><option value="PSE">PSE</option><option value="RLE">RLE</option><option value="TMO">TMO</option><option value="TPL">TPL</option><option value="VBO">VBO</option><option value="YCE">YCE</option><option value="YDI">YDI</option></select></span>
 <select class="sel" id="fs" onchange="af()"><option value="">Source</option><option value="VCF">VCF</option><option value="CRM">CRM</option><option value="MULTI">Multi</option></select>
+<select class="sel" id="fmail" onchange="af()"><option value="">Email</option><option value="1">Avec email</option><option value="0">Sans email</option></select>
+<select class="sel" id="fphone" onchange="af()"><option value="">T&eacute;l</option><option value="1">Avec t&eacute;l</option><option value="0">Sans t&eacute;l</option></select>
 <div class="chips" id="chs"></div>
 <button class="btn btn-blue" onclick="openNewClientPanel()">+ Ajouter un client</button>
 <span class="reset-link" onclick="resetF()">Reset</span>
@@ -387,6 +389,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <button class="btn btn-blue" onclick="genTour()" style="height:36px">&#9654; G&eacute;n&eacute;rer la semaine</button>
 </div>
 
+<div id="t-relances" style="margin-bottom:16px"></div>
 <div class="tour-week-nav" id="t-weeknav" style="display:none">
 <button onclick="prevWeek()">&larr; Sem. pr&eacute;c.</button>
 <div>
@@ -535,7 +538,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 </div>
 
 <div class="ca-header" style="margin-top:32px">
-<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Transfert / fusion de portefeuilles</h2>
+<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Agents</h2>
 </div>
 <div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;padding:16px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
 <div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Code source</label><br><select id="tr-src" class="sel"></select></div>
@@ -660,7 +663,7 @@ const PS=50;let F=[],cp=1,sc='score',sd=-1,ac=new Set();
 const CM={TOP:{l:'Top',c:'bdg-top',cc:'c-top'},ACTIF:{l:'Actif',c:'bdg-act',cc:'c-act'},CLIENT:{l:'Client',c:'bdg-act',cc:'c-act'},PROSPECT:{l:'Prospect',c:'bdg-pro',cc:'c-pro'},AGENT:{l:'Agent',c:'bdg-age',cc:'c-age'},INACTIF:{l:'Inactif',c:'bdg-ina',cc:'c-ina'}};
 const DCOL=['#b87333','#6b8f5e','#d4a054','#8b6b8a','#c45c5c'];
 
-function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){loadProfiles();loadClientsOrder();populateTransferCodes()}}
+function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector();renderRelances()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){loadProfiles();loadClientsOrder();populateTransferCodes()}}
 
 function init(){const cn={};D.forEach(c=>{const k=c.classif;cn[k]=(cn[k]||0)+1});const cc=document.getElementById('chs');
 Object.keys(CM).forEach(k=>{if(!cn[k])return;const ch=document.createElement('span');ch.className='chip '+(CM[k].cc||'');ch.dataset.c=k;ch.innerHTML=CM[k].l+' <span style="opacity:.6">'+(cn[k]||0)+'</span>';ch.onclick=()=>{if(ac.has(k)){ac.delete(k);ch.classList.remove('on')}else{ac.add(k);ch.classList.add('on')}af()};cc.appendChild(ch)});
@@ -685,11 +688,11 @@ document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll(
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
 document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
-if(!canSeeAll()){document.getElementById('kpi-sector').querySelector('.kpi-lbl').textContent='Mon secteur'}}
+if(!canSeeAll()){document.getElementById('kpi-sector').querySelector('.kpi-lbl').textContent='Mon secteur';var _ka=document.getElementById('k-a').closest('.kpi');if(_ka)_ka.style.display='none';var _kt=document.getElementById('k-top').closest('.kpi');if(_kt)_kt.style.display='none';}}
 
 function nrm(s){return (s==null?'':String(s)).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-function af(){const q=nrm(document.getElementById('q').value),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value;
-F=D.filter(c=>{if(!canSeeAll()&&!currentAgentCodes.includes(c.agent))return false;if(q){var _h=nrm((c.nom||'')+' '+(c.ville||'')+' '+(c.email||'')+' '+(c.cp||'')+' '+(c.contact||'')+' '+(c.dept||'')+' '+(c.tel||'')+' '+(c.port||'')+' '+(c.agent||'')+' '+(c.n_clt||''));if(!_h.includes(q))return false;}if(reg&&c.region!==reg)return false;if(dept&&c.dept!==dept)return false;if(age&&c.agent!==age)return false;if(src==='VCF'&&!c.src.includes('VCF'))return false;if(src==='CRM'&&c.src.includes('VCF'))return false;if(src==='MULTI'&&!c.src.includes('|'))return false;if(ac.size>0&&!ac.has(c.classif))return false;return true});
+function af(){const q=nrm(document.getElementById('q').value),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value,fmail=document.getElementById('fmail').value,fphone=document.getElementById('fphone').value;
+F=D.filter(c=>{if(!canSeeAll()&&!currentAgentCodes.includes(c.agent))return false;if(q){var _h=nrm((c.nom||'')+' '+(c.ville||'')+' '+(c.email||'')+' '+(c.cp||'')+' '+(c.contact||'')+' '+(c.dept||'')+' '+(c.tel||'')+' '+(c.port||'')+' '+(c.agent||'')+' '+(c.n_clt||''));if(!_h.includes(q))return false;}if(reg&&c.region!==reg)return false;if(dept&&c.dept!==dept)return false;if(age&&c.agent!==age)return false;if(src==='VCF'&&!c.src.includes('VCF'))return false;if(src==='CRM'&&c.src.includes('VCF'))return false;if(src==='MULTI'&&!c.src.includes('|'))return false;if(ac.size>0&&!ac.has(c.classif))return false;if(fmail==='1'&&!((c.email||'').trim()))return false;if(fmail==='0'&&((c.email||'').trim()))return false;var _ph=((c.tel||'')+(c.port||'')).trim();if(fphone==='1'&&!_ph)return false;if(fphone==='0'&&_ph)return false;return true});
 ds();cp=1;render();uk()}
 function ds(){F.sort((a,b)=>{let va=a[sc],vb=b[sc];if(sc==='ca'||sc==='score')return(va-vb)*sd;va=String(va).toLowerCase();vb=String(vb).toLowerCase();return va<vb?-sd:va>vb?sd:0})}
 function sb(c){if(sc===c)sd*=-1;else{sc=c;sd=(c==='ca'||c==='score')?-1:1}ds();render()}
@@ -740,7 +743,7 @@ h+=panelInput('Contact','pf-contact',c.contact,'text','');
 h+=panelInput('Type','pf-type',c.type,'text','');
 h+=panelSelect('Classification','pf-classif',c.classif,classifOptions,'');
 h+=panelSelect('Priorite','pf-prio',c.prio||'',prioOptions,'');
-if(canSeeAll())h+=panelInput('Agent','pf-agent',c.agent,'text','');
+if(canSeeAll()){var _agc=Array.from(new Set(D.map(function(x){return x.agent}).filter(Boolean))).sort();h+='<div class="pan-field"><label>Agent</label><input id="pf-agent" list="pf-agent-list" value="'+esc(c.agent||'')+'" placeholder="Chercher un code agent..." style="text-transform:uppercase" autocomplete="off"><datalist id="pf-agent-list">'+_agc.map(function(a){return '<option value="'+esc(a)+'"></option>'}).join('')+'</datalist></div>';}
 h+=panelInput('Telephone','pf-tel',c.tel,'text','');
 h+=panelInput('Portable','pf-port',c.port,'text','');
 h+=panelInput('Email','pf-email',c.email,'email','full');
@@ -753,7 +756,7 @@ h+=panelInput('Commande','pf-cmd',c.cmd,'date','');
 h+=panelInput('Relance','pf-relance',c.relance,'date','');
 h+=panelInput('Source','pf-src',c.src,'text','');
 h+=panelInput('Numero client','pf-nclt',c.n_clt,'text','');
-h+=panelInput('CA','pf-ca',c.ca||0,'number','');
+if(canSeeAll())h+=panelInput('CA','pf-ca',c.ca||0,'number','');
 h+=panelInput('Factures','pf-factures',c.nb_factures||0,'number','');
 if(isAdminRole()){h+=panelInput('Distance Villeneuve','pf-distvda',c.distVDA,'number','');
 h+=panelInput('Distance Herouville','pf-disthsc',c.distHSC,'number','');}
@@ -775,8 +778,8 @@ function closeP(){panelEditMode=false;panelIsNew=false;panelDraftClient=null;doc
 function rw(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v?esc(v):'-')+'</span></div>'}
 function rwHTML(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v||'-')+'</span></div>'}
 async function sbFetch(url,opts){const res=await fetch(url,opts);if(!res.ok){let t='';try{t=await res.text()}catch(_){}throw new Error('HTTP '+res.status+(t?' — '+t:''))}return res}
-function resetF(){document.getElementById('q').value='';document.getElementById('fr').value='';document.getElementById('fd').value='';document.getElementById('fa').value='';document.getElementById('fs').value='';ac.clear();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));af()}
-function openPById(id){const c=D.find(x=>x.id===id);if(!c)return;panelClientId=id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
+function resetF(){document.getElementById('q').value='';document.getElementById('fr').value='';document.getElementById('fd').value='';document.getElementById('fa').value='';document.getElementById('fs').value='';document.getElementById('fmail').value='';document.getElementById('fphone').value='';ac.clear();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));af()}
+function openPById(id){const c=D.find(x=>String(x.id)===String(id));if(!c)return;panelClientId=id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
 function openNewClientPanel(){
 panelClientId=null;
 panelIsNew=true;
@@ -793,7 +796,7 @@ c.contact=document.getElementById('pf-contact').value.trim();
 c.type=document.getElementById('pf-type').value.trim();
 c.classif=document.getElementById('pf-classif').value;
 c.prio=document.getElementById('pf-prio').value;
-if(canSeeAll())c.agent=document.getElementById('pf-agent').value.trim();
+if(canSeeAll())c.agent=document.getElementById('pf-agent').value.trim().toUpperCase();
 c.tel=document.getElementById('pf-tel').value.trim();
 c.port=document.getElementById('pf-port').value.trim();
 c.email=document.getElementById('pf-email').value.trim();
@@ -806,7 +809,7 @@ c.cmd=document.getElementById('pf-cmd').value;
 c.relance=document.getElementById('pf-relance').value;
 c.src=document.getElementById('pf-src').value.trim();
 c.n_clt=document.getElementById('pf-nclt').value.trim();
-c.ca=parseFloat(document.getElementById('pf-ca').value)||0;
+if(document.getElementById('pf-ca'))c.ca=parseFloat(document.getElementById('pf-ca').value)||0;
 c.nb_factures=parseInt(document.getElementById('pf-factures').value)||0;
 if(document.getElementById('pf-distvda')){c.distVDA=parseFloat(document.getElementById('pf-distvda').value)}
 if(document.getElementById('pf-disthsc')){c.distHSC=parseFloat(document.getElementById('pf-disthsc').value)}
@@ -1591,23 +1594,25 @@ if(!tourDaysData||tourDaysData.length===0)return;
 const weekVal=document.getElementById('t-week').value;
 let weekLabel='';
 if(weekVal){const [y,w]=weekVal.split('-');weekLabel='S'+w+'_'+y+'_'}
-let csv='JOUR;DATE;ETAPE;NOM;VILLE;DEPT;CP;TEL;PORTABLE;EMAIL;CA;SCORE;CLASSIF;PRIORITE;COMMENTAIRE\n';
+let csv='JOUR;DATE;ETAPE;NOM;VILLE;DEPT;CP;TEL;PORTABLE;EMAIL;'+(canSeeAll()?'CA;':'')+'SCORE;CLASSIF;PRIORITE;COMMENTAIRE\n';
 const [wy,ww]=weekVal?weekVal.split('-').map(Number):[2026,1];
 const ws=getWeekStart(wy,ww);
 tourDaysData.forEach((day,d)=>{
 const dayDate=new Date(ws);dayDate.setDate(ws.getDate()+d);
 const dateStr=dayDate.toISOString().split('T')[0];
 day.forEach((c,i)=>{
-csv+=[JOURS_FR[d],dateStr,i+1,c.nom,c.ville||'',c.dept,c.cp,c.tel||'',c.port||'',c.email||'',c.ca||0,c.score,c.classif,c.prio||'',c.comment||''].map(csvCell).join(';')+'\n';
+var _tr=[JOURS_FR[d],dateStr,i+1,c.nom,c.ville||'',c.dept,c.cp,c.tel||'',c.port||'',c.email||''];if(canSeeAll())_tr.push(c.ca||0);_tr=_tr.concat([c.score,c.classif,c.prio||'',c.comment||'']);csv+=_tr.map(csvCell).join(';')+'\n';
 });
 });
 const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
 const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Tournee_'+weekLabel+'FSD_'+currentAgent+'.csv';a.click();
 }
 
+function renderRelances(){var box=document.getElementById('t-relances');if(!box)return;var pool=canSeeAll()?D:D.filter(function(c){return currentAgentCodes.includes(c.agent)});var today=new Date();today.setHours(0,0,0,0);var horizon=new Date(today);horizon.setDate(today.getDate()+14);var list=pool.filter(function(c){if(!c.relance)return false;var d=new Date(c.relance);return !isNaN(d.getTime())&&d<=horizon;});list.sort(function(a,b){return new Date(a.relance)-new Date(b.relance)});if(!list.length){box.innerHTML='<div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--gray-40)">Aucune relance a effectuer sous 14 jours.</div>';return;}var rows=list.slice(0,60).map(function(c){var d=new Date(c.relance);var overdue=d<today;var dstr=d.toLocaleDateString('fr-FR');return '<div onclick="openPById(\''+esc(String(c.id))+'\')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--gray-10);cursor:pointer"><div style="min-width:0"><b>'+esc(c.nom||'')+'</b> <span style="font-size:11px;color:var(--gray-40)">'+esc(c.ville||'')+' ('+esc(c.dept||'')+')</span></div><div style="white-space:nowrap;font-size:12px;font-weight:700;color:'+(overdue?'var(--red)':'var(--blue)')+'">'+(overdue?'En retard - ':'')+dstr+'</div></div>';}).join('');box.innerHTML='<div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;overflow:hidden"><div style="padding:11px 14px;background:var(--navy);color:#fff;font-weight:700;display:flex;justify-content:space-between;align-items:center"><span>Relances a effectuer</span><span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 9px;font-size:12px">'+list.length+'</span></div><div style="max-height:280px;overflow-y:auto">'+rows+'</div></div>';}
+
 // ---- switchTab already handles tour init ----
 
-function exportCSV(){const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;CA;PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email,c.ca,c.prio,c.agent,c.distVDA,c.distHSC,c.src].map(csvCell).join(';')).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
+function exportCSV(){const showCA=canSeeAll();const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;'+(showCA?'CA;':'')+'PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>{var row=[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email];if(showCA)row.push(c.ca);row=row.concat([c.prio,c.agent,c.distVDA,c.distHSC,c.src]);return row.map(csvCell).join(';')}).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeP()});
 
 // ========= CHIFFRE D'AFFAIRES =========
