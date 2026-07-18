@@ -339,6 +339,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 </div>
 <div class="nav-right">
 <div class="nav-badge" id="nav-badge">Secteur MBO</div>
+<button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openMyAccount()">Mon compte</button>
 <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="logout()">D&eacute;connexion</button>
 </div>
 </div>
@@ -2907,6 +2908,40 @@ localStorage.removeItem('sb_token');
 }
 }
 
+// Mon compte (changement de mot de passe)
+function openMyAccount(){
+var email='';
+try{email=JSON.parse(atob(supabaseToken.split('.')[1])).email||''}catch(e){}
+document.getElementById('myaccount-email').textContent=email||currentDisplayName||currentAgent||'';
+document.getElementById('my-pwd1').value='';document.getElementById('my-pwd2').value='';
+document.getElementById('my-pwd-err').textContent='';document.getElementById('my-pwd-ok').textContent='';
+document.getElementById('myaccount-ov').style.display='flex';
+}
+function closeMyAccount(e){
+if(e&&e.target&&e.target!==document.getElementById('myaccount-ov'))return;
+document.getElementById('myaccount-ov').style.display='none';
+}
+async function changeMyCrmPassword(){
+var p1=document.getElementById('my-pwd1').value,p2=document.getElementById('my-pwd2').value;
+var err=document.getElementById('my-pwd-err'),ok=document.getElementById('my-pwd-ok'),btn=document.getElementById('btn-my-pwd');
+err.textContent='';ok.textContent='';
+if(!p1||p1.length<6){err.textContent='Le mot de passe doit contenir au moins 6 caractères.';return}
+if(p1!==p2){err.textContent='Les mots de passe ne correspondent pas.';return}
+btn.disabled=true;btn.textContent='Enregistrement...';
+try{
+var res=await fetch(SUPABASE_URL+'/auth/v1/user',{
+method:'PUT',
+headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken},
+body:JSON.stringify({password:p1})
+});
+var data=await res.json();
+if(!res.ok)throw new Error(data.error_description||data.msg||'Erreur lors du changement de mot de passe');
+ok.textContent='✓ Mot de passe modifié. Utilisez-le dès votre prochaine connexion.';
+document.getElementById('my-pwd1').value='';document.getElementById('my-pwd2').value='';
+}catch(e){err.textContent=e.message}
+btn.disabled=false;btn.textContent='Enregistrer le nouveau mot de passe';
+}
+
 // Logout
 function logout(){
 localStorage.removeItem('sb_token');
@@ -2921,6 +2956,22 @@ checkSession();
 // Note: default MBO filter is applied inside doLogin() and checkSession() after data loads
 
 </script>
+<!-- MON COMPTE (changement de mot de passe) -->
+<div id="myaccount-ov" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:2200;align-items:center;justify-content:center" onclick="closeMyAccount(event)">
+<div style="background:var(--card);border-radius:8px;max-width:420px;width:92vw;padding:24px" onclick="event.stopPropagation()">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h3 style="font-size:17px;color:var(--navy)">Mon compte</h3><button onclick="closeMyAccount()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-40)">&times;</button></div>
+<div style="font-size:13px;margin-bottom:16px"><span style="color:var(--gray-40)">Connect&eacute; en tant que</span><br><strong id="myaccount-email"></strong></div>
+<div style="border-top:1px solid var(--gray-05);padding-top:14px">
+<h4 style="font-size:13px;color:var(--navy);margin-bottom:10px">Changer mon mot de passe</h4>
+<input type="password" id="my-pwd1" placeholder="Nouveau mot de passe (6 caract. min)" style="width:100%;padding:10px;border:1px solid var(--gray-10);border-radius:6px;font-size:13px;margin-bottom:8px">
+<input type="password" id="my-pwd2" placeholder="Confirmer le nouveau mot de passe" style="width:100%;padding:10px;border:1px solid var(--gray-10);border-radius:6px;font-size:13px;margin-bottom:10px">
+<div id="my-pwd-err" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:4px"></div>
+<div id="my-pwd-ok" style="color:var(--green);font-size:12px;min-height:16px;margin-bottom:4px"></div>
+<button id="btn-my-pwd" class="btn btn-blue" style="width:100%" onclick="changeMyCrmPassword()">Enregistrer le nouveau mot de passe</button>
+</div>
+</div>
+</div>
+
 <!-- ECRAN DEDIE CLIENTS ORDER (connectes au CRM par erreur) -->
 <div id="client-redirect-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#f4efe6;z-index:3000;align-items:center;justify-content:center">
 <div style="text-align:center;max-width:460px;padding:24px">
