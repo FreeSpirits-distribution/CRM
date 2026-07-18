@@ -593,6 +593,16 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <th>Nom</th><th>Email</th><th>T&eacute;l</th><th>Acc&egrave;s</th><th>Statut</th><th>Cr&eacute;&eacute; le</th><th>Notes</th><th style="width:170px"></th>
 </tr></thead><tbody id="co-tbody"></tbody></table>
 </div>
+
+<div class="ca-header" style="margin-top:32px">
+<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Paniers clients (portail Order)</h2>
+<div style="font-size:12px;color:var(--gray-40);margin-top:6px">Contenu du panier de chaque client, mis &agrave; jour en direct &mdash; cliquer sur une ligne pour voir le d&eacute;tail.</div>
+</div>
+<div class="tbl-wrap">
+<table class="admin-tbl"><thead><tr>
+<th style="width:120px">Derni&egrave;re activit&eacute;</th><th>Client</th><th>Produits</th><th>Bouteilles</th><th>Total HT</th><th style="width:150px">Statut</th>
+</tr></thead><tbody id="pn-tbody"></tbody></table>
+</div>
 <div class="ca-add-modal-overlay" id="co-edit-ov" style="display:none" onclick="closeClientOrder(event)">
 <div class="ca-add-modal" onclick="event.stopPropagation()" style="max-width:460px">
 <div class="ca-add-head"><h3 id="co-edit-title">Client Order</h3><button class="ca-add-close" onclick="closeClientOrder()">&times;</button></div>
@@ -727,7 +737,7 @@ function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.cla
 var _kids=document.getElementById('tab-admin').children;
 for(var _i=4;_i<_kids.length;_i++){if(_kids[_i].classList&&_kids[_i].classList.contains('ca-add-modal-overlay'))continue;_kids[_i].style.display=isAdminRole()?'':'none';}
 loadSettings();loadAuditLog();
-if(isAdminRole()){loadProfiles();loadClientsOrder();populateTransferCodes()}
+if(isAdminRole()){loadProfiles();loadClientsOrder().then(function(){loadPaniers()});populateTransferCodes()}
 }}
 
 function init(){const cn={};D.forEach(c=>{const k=c.classif;cn[k]=(cn[k]||0)+1});const cc=document.getElementById('chs');
@@ -2475,6 +2485,36 @@ return '<tr><td style="font-size:11px;white-space:nowrap">'+when+'</td><td style
 if(rows.length>4){
 tb.innerHTML+='<tr><td colspan="5" style="text-align:center;padding:10px;background:var(--gray-05)"><button class="btn btn-ghost" style="padding:5px 16px;font-size:11px" onclick="auditLogExpanded=!auditLogExpanded;renderAuditLog()">'+(auditLogExpanded?'&#9650; Réduire — ne garder que les 4 derniers':'&#9660; Afficher les '+(rows.length-4)+' mouvements précédents')+'</button></td></tr>';
 }
+}
+// ===== Paniers clients Order =====
+async function loadPaniers(){
+if(!isAdminRole())return;
+var tb=document.getElementById('pn-tbody');if(!tb)return;
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/paniers?select=*&order=updated_at.desc&limit=100',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(!r.ok){tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:16px">Indisponible — le SQL paniers a-t-il été exécuté ?</td></tr>';return}
+var data=await r.json();
+if(!data.length){tb.innerHTML='<tr><td colspan="6" style="color:var(--gray-40);padding:16px">Aucun panier enregistré pour l\'instant</td></tr>';return}
+tb.innerHTML=data.map(function(p,i){
+var c=clientsOrderData.find(function(x){return x.id===p.client_id});
+var who=c?(c.nom||c.email||''):(p.client_id||'').slice(0,8)+'…';
+var d=new Date(p.updated_at);
+var items=p.items||[];
+var det=items.length?items.map(function(it){
+var lt=Math.round(it.qty*it.pcb*it.prix_ht*100)/100;
+return '<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--gray-10)"><span>'+esc(it.name)+'</span><span style="white-space:nowrap">'+it.qty+' colis × '+it.pcb+' bt — '+lt.toLocaleString('fr-FR',{minimumFractionDigits:2})+' €</span></div>';
+}).join(''):'<i style="color:var(--gray-40)">Panier vide</i>';
+var sent=p.statut==='commande envoyée';
+return '<tr style="cursor:pointer" title="Cliquer pour voir le détail" onclick="var e=document.getElementById(\'pn-det-'+i+'\');e.style.display=(e.style.display===\'none\')?\'\':\'none\'">'+
+'<td style="font-size:11px;white-space:nowrap">'+d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</td>'+
+'<td><strong>'+esc(who)+'</strong></td>'+
+'<td>'+items.length+' produit(s)</td>'+
+'<td style="white-space:nowrap">'+(p.total_btl||0)+' bt</td>'+
+'<td style="white-space:nowrap;font-weight:600">'+Number(p.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})+' €</td>'+
+'<td>'+(sent?'<span class="bdg" style="background:var(--green);color:#fff">Commande envoyée</span>':'<span class="bdg" style="background:var(--orange);color:#fff">En cours</span>')+'</td></tr>'+
+'<tr id="pn-det-'+i+'" style="display:none"><td colspan="6" style="background:var(--gray-05);padding:10px 18px;font-size:12px">'+det+'</td></tr>';
+}).join('');
+}catch(e){tb.innerHTML='<tr><td colspan="6" style="color:var(--red);padding:16px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
 let appSettings={};
 async function loadSettings(){
