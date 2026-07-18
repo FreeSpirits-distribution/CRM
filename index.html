@@ -578,6 +578,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>T&eacute;l&eacute;phone</label><input type="text" id="co-tel"></div>
 <div class="ca-add-field"><label>Statut</label><select id="co-blocked"><option value="false">Actif</option><option value="true">Bloqu&eacute;</option></select></div>
 <div class="ca-add-field full"><label>Notes</label><input type="text" id="co-notes"></div>
+<div class="ca-add-field full" id="co-pwd-wrap"><label>Mot de passe initial (cr&eacute;e le compte de connexion)</label><div style="display:flex;gap:8px"><input type="text" id="co-pwd" placeholder="laisser vide = fiche sans compte" style="flex:1"><button class="btn btn-ghost" type="button" onclick="genOrderPwd()" style="padding:6px 10px;font-size:11px;white-space:nowrap">G&eacute;n&eacute;rer</button></div><div style="font-size:11px;color:var(--gray-40);margin-top:4px">&Agrave; transmettre au client &mdash; il pourra le changer lui-m&ecirc;me dans son espace Order (bouton Mon compte).</div></div>
 </div>
 <div class="ca-add-foot">
 <button class="btn" onclick="closeClientOrder()">Annuler</button>
@@ -2395,6 +2396,8 @@ document.getElementById('co-email').value=c?(c.email||''):'';
 document.getElementById('co-tel').value=c?(c.tel||''):'';
 document.getElementById('co-blocked').value=(c&&c.blocked)?'true':'false';
 document.getElementById('co-notes').value=c?(c.notes||''):'';
+document.getElementById('co-pwd').value='';
+document.getElementById('co-pwd-wrap').style.display=id?'none':'';
 document.getElementById('co-edit-ov').style.display='flex';
 }
 function closeClientOrder(e){
@@ -2410,12 +2413,42 @@ if(coEditId){
 await sbFetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+coEditId,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify(data)});
 showSaved('Client modifie');
 }else{
+var pwd=(document.getElementById('co-pwd').value||'').trim();
+if(pwd){
+if(!data.email){alert('Un email est obligatoire pour creer un compte de connexion.');return}
+if(pwd.length<6){alert('Le mot de passe initial doit faire au moins 6 caracteres.');return}
+// 1. Creation du compte Auth (role client_order via metadonnees)
+var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:data.email,password:pwd,data:{display_name:data.nom,tel:data.tel||'',role:'client_order'}})});
+var signData=await signRes.json();
+if(!signRes.ok){
+var m=signData.msg||signData.error_description||(signData.error&&signData.error.message)||JSON.stringify(signData);
+if(/already|exist|registered/i.test(m))m='Un compte de connexion existe deja pour cet email.';
+alert('Erreur creation du compte: '+m);return
+}
+var uid=(signData.user&&signData.user.id)||signData.id;
+if(uid){
+// 2. Supprimer une eventuelle fiche orpheline (creee sans compte) avec le meme email
+try{await fetch(SUPABASE_URL+'/rest/v1/clients_order?email=eq.'+encodeURIComponent(data.email)+'&id=neq.'+uid,{method:'DELETE',headers:sbHeaders()})}catch(_e){}
+// 3. Creer la fiche liee au compte (id = uid du compte Auth)
+data.id=uid;
+await sbFetch(SUPABASE_URL+'/rest/v1/clients_order',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),body:JSON.stringify(data)});
+}
+if(signData.access_token){showSaved('Compte cree — transmettez le mot de passe au client')}
+else{alert('Compte cree, mais en attente de confirmation email.\nSans SMTP configure, confirmez-le manuellement : Dashboard Supabase > Authentication > Users > ... > Confirm email.\n(Ou desactivez "Confirm email" dans les reglages Auth.)');showSaved('Compte cree (a confirmer)')}
+}else{
 data.id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('x'+Date.now()+Math.random().toString(36).slice(2));
 await sbFetch(SUPABASE_URL+'/rest/v1/clients_order',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'return=minimal'}),body:JSON.stringify(data)});
-showSaved('Client ajoute');
+showSaved('Client ajoute (fiche seule, sans compte)');
+}
 }
 closeClientOrder();await loadClientsOrder();
 }catch(e){alert('Erreur: '+e.message)}
+}
+function genOrderPwd(){
+var chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+var p='';var a=new Uint32Array(10);crypto.getRandomValues(a);
+for(var i=0;i<10;i++)p+=chars[a[i]%chars.length];
+document.getElementById('co-pwd').value=p;
 }
 async function toggleBlockClient(id,block){
 try{
