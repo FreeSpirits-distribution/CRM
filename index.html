@@ -512,7 +512,13 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 
 <!-- ADMIN TAB -->
 <div class="tab-content" id="tab-admin">
-<div class="ca-header">
+<div class="ca-header"><h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">R&eacute;glages</h2></div>
+<div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;padding:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px">
+<div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Franco (bouteilles)</label><br><input type="number" id="set-franco" class="sel" min="1" step="1" style="width:110px"></div>
+<button class="btn btn-blue" onclick="saveFranco()">Enregistrer</button>
+<span style="font-size:11px;color:var(--gray-40)">Seuil affich&eacute; dans le panier du portail Order et propos&eacute; dans les proformas.</span>
+</div>
+<div class="ca-header" id="adm-h-prof">
 <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Gestion des profils agents</h2>
 <div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
 <button class="btn btn-blue" onclick="openAddAgent()">&#10010; Ajouter un agent</button>
@@ -704,7 +710,12 @@ const PS=50;let F=[],cp=1,sc='score',sd=-1,ac=new Set();
 const CM={TOP:{l:'Top',c:'bdg-top',cc:'c-top'},ACTIF:{l:'Actif',c:'bdg-act',cc:'c-act'},CLIENT:{l:'Client',c:'bdg-act',cc:'c-act'},PROSPECT:{l:'Prospect',c:'bdg-pro',cc:'c-pro'},AGENT:{l:'Agent',c:'bdg-age',cc:'c-age'},INACTIF:{l:'Inactif',c:'bdg-ina',cc:'c-ina'}};
 const DCOL=['#b87333','#6b8f5e','#d4a054','#8b6b8a','#c45c5c'];
 
-function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector();renderRelances()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){loadProfiles();loadClientsOrder();populateTransferCodes()}}
+function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector();renderRelances()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){
+var _kids=document.getElementById('tab-admin').children;
+for(var _i=2;_i<_kids.length;_i++){if(_kids[_i].classList&&_kids[_i].classList.contains('ca-add-modal-overlay'))continue;_kids[_i].style.display=isAdminRole()?'':'none';}
+loadSettings();
+if(isAdminRole()){loadProfiles();loadClientsOrder();populateTransferCodes()}
+}}
 
 function init(){const cn={};D.forEach(c=>{const k=c.classif;cn[k]=(cn[k]||0)+1});const cc=document.getElementById('chs');
 Object.keys(CM).forEach(k=>{if(!cn[k])return;const ch=document.createElement('span');ch.className='chip '+(CM[k].cc||'');ch.dataset.c=k;ch.innerHTML=CM[k].l+' <span style="opacity:.6">'+(cn[k]||0)+'</span>';ch.onclick=()=>{if(ac.has(k)){ac.delete(k);ch.classList.remove('on')}else{ac.add(k);ch.classList.add('on')}af()};cc.appendChild(ch)});
@@ -727,7 +738,7 @@ else if(currentRole==='manager'){document.getElementById('nav-badge').textConten
 else{document.getElementById('nav-badge').textContent='Secteur '+currentAgent}
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
-document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('nav-admin').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
 document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 if(!canSeeAll()){document.getElementById('kpi-sector').querySelector('.kpi-lbl').textContent='Mon secteur';var _ka=document.getElementById('k-a').closest('.kpi');if(_ka)_ka.style.display='none';var _kt=document.getElementById('k-top').closest('.kpi');if(_kt)_kt.style.display='none';}}
@@ -2085,7 +2096,7 @@ if(ok){
 if(await checkClientOrderRedirect())return;
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
-document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('nav-admin').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
 document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 // Force CRM tab active
@@ -2399,6 +2410,24 @@ st.textContent="Image envoyee";st.style.color='var(--green)';
 
 // ===== Clients Order (gestion Admin) =====
 let clientsOrderData=[];
+let appSettings={};
+async function loadSettings(){
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/app_settings?select=key,value',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(r.ok){appSettings={};(await r.json()).forEach(function(s){appSettings[s.key]=s.value});
+var el=document.getElementById('set-franco');if(el)el.value=appSettings.franco_btl||'36';}
+}catch(e){console.warn('Settings',e)}
+}
+async function saveFranco(){
+var v=parseInt(document.getElementById('set-franco').value);
+if(!v||v<1){alert('Valeur invalide.');return}
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/app_settings',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({key:'franco_btl',value:String(v)})});
+if(!r.ok)throw new Error(await r.text());
+appSettings.franco_btl=String(v);
+showSaved('Franco : '+v+' bouteilles');
+}catch(e){alert('Erreur : '+e.message+'\n\nAs-tu exécuté le SQL app_settings ?')}
+}
 let clientAccountIds=new Set();
 async function loadClientsOrder(){
 if(!isAdminRole())return;
@@ -2890,7 +2919,7 @@ if(ok){
 if(await checkClientOrderRedirect())return;
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
-document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
+document.getElementById('nav-admin').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
 document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 switchTab('crm');
