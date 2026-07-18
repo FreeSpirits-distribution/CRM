@@ -645,6 +645,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>Volume (cl)</label><input type="text" id="ce-vol" placeholder="70"></div>
 <div class="ca-add-field"><label>TAV (%)</label><input type="number" id="ce-tav" step="0.1" placeholder="43"></div>
 <div class="ca-add-field"><label>PCB</label><input type="number" id="ce-pcb" min="1" placeholder="6"></div>
+<div class="ca-add-field"><label>&Eacute;quiv. franco / colis</label><input type="number" id="ce-franco-eq" min="0" placeholder="vide = PCB" title="Combien de bouteilles ce colis compte pour le franco (ex: 6 pour une caisse de 24 bi&egrave;res). Vide = PCB normal."></div>
 <div class="ca-add-field"><label>HDHT (&euro;)</label><input type="number" id="ce-hdht" step="0.01" placeholder="0.00"></div>
 <div class="ca-add-field"><label>Droits (&euro;)</label><input type="number" id="ce-droits" step="0.0001" placeholder="0.00"></div>
 <div class="ca-add-field"><label>CSS (&euro;)</label><input type="number" id="ce-css" step="0.01" placeholder="0.00"></div>
@@ -2205,6 +2206,7 @@ document.getElementById('ce-etui').value=p?p.etui||'':'';
 document.getElementById('ce-vol').value=p?p.vol||'':'';
 document.getElementById('ce-tav').value=p?p.tav||'':'';
 document.getElementById('ce-pcb').value=p?p.pcb||6:6;
+document.getElementById('ce-franco-eq').value=(p&&p.franco_equiv_colis)?p.franco_equiv_colis:'';
 document.getElementById('ce-hdht').value=p?p.hdht||0:0;
 document.getElementById('ce-droits').value=p?p.droits||0:0;
 document.getElementById('ce-css').value=p?p.css||0:0;
@@ -2245,6 +2247,7 @@ etui:document.getElementById('ce-etui').value.trim(),
 vol:document.getElementById('ce-vol').value.trim(),
 tav:parseFloat(document.getElementById('ce-tav').value)||0,
 pcb:parseInt(document.getElementById('ce-pcb').value)||6,
+franco_equiv_colis:parseInt(document.getElementById('ce-franco-eq').value)||null,
 hdht:parseFloat(document.getElementById('ce-hdht').value)||0,
 droits:parseFloat(document.getElementById('ce-droits').value)||0,
 css:parseFloat(document.getElementById('ce-css').value)||0,
