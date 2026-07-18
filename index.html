@@ -2431,17 +2431,11 @@ async function loadAuditLog(){
 if(!canSeeAll())return;
 var tb=document.getElementById('al-tbody');if(!tb)return;
 try{
-var hdrs={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json'};
-var res=await Promise.all([
-fetch(SUPABASE_URL+'/rest/v1/audit_log?select=*&order=at.desc&limit=200',{headers:hdrs}),
-fetch(SUPABASE_URL+'/rest/v1/rpc/get_login_log',{method:'POST',headers:hdrs,body:JSON.stringify({p_limit:200})})
-]);
-var mods=res[0].ok?await res[0].json():[];
-var logins=res[1].ok?await res[1].json():[];
-if(!res[0].ok&&!res[1].ok){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Journal indisponible — les SQL audit_log et get_login_log ont-ils été exécutés ?</td></tr>';return}
-auditLogData=mods.map(function(m){m._kind='mod';return m}).concat(
-logins.map(function(l){return {_kind:'login',at:l.at,user_email:l.email,agent_code:l.agent_code,user_role:l.user_role,action:l.action}}));
-auditLogData.sort(function(a,b){return new Date(b.at)-new Date(a.at)});
+var r=await fetch(SUPABASE_URL+'/rest/v1/audit_log?select=*&order=at.desc&limit=300',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(!r.ok){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Journal indisponible — le SQL audit_log a-t-il été exécuté ?</td></tr>';return}
+auditLogData=(await r.json()).map(function(m){
+if(m.table_name==='connexion'){m._kind='login';m.user_role=m.row_label}else{m._kind='mod'}
+return m});
 renderAuditLog();
 }catch(e){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
@@ -2458,7 +2452,7 @@ if(q&&!(((l.row_label||'')+' '+(l.user_email||'')+' '+(l.agent_code||'')).toLowe
 return true});
 document.getElementById('al-count').textContent=rows.length+' entrée(s)';
 if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--gray-40);padding:16px">Aucune modification enregistrée pour l\'instant</td></tr>';return}
-var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)'],login:['Connexion','var(--green)'],logout:['Déconnexion','var(--gray-40)'],user_signedup:['Inscription','var(--orange)']};
+var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)'],LOGIN:['Connexion','var(--green)']};
 tb.innerHTML=rows.map(function(l){
 var d=new Date(l.at);
 var when=d.toLocaleDateString('fr-FR')+'<br>'+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
