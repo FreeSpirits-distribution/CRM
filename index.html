@@ -355,7 +355,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <input type="text" class="search" id="q" placeholder="Rechercher..." oninput="af()">
 <select class="sel" id="fr" onchange="af()"><option value="">R&eacute;gion</option><option value="Auvergne-RA">Auvergne-RA</option><option value="Bourgogne-FC">Bourgogne-FC</option><option value="Bretagne">Bretagne</option><option value="Centre-Val de Loire">Centre-Val de Loire</option><option value="Corse">Corse</option><option value="Grand Est">Grand Est</option><option value="Hauts-de-France">Hauts-de-France</option><option value="Ile-de-France">Ile-de-France</option><option value="Normandie">Normandie</option><option value="Nouvelle-Aquitaine">Nouvelle-Aquitaine</option><option value="Occitanie">Occitanie</option><option value="PACA">PACA</option><option value="Pays de la Loire">Pays de la Loire</option></select>
 <select class="sel" id="fd" onchange="af()"><option value="">D&eacute;pt</option><option value="01">01</option><option value="02">02</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option><option value="70">70</option><option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option><option value="76">76</option><option value="77">77</option><option value="78">78</option><option value="79">79</option><option value="80">80</option><option value="81">81</option><option value="82">82</option><option value="83">83</option><option value="84">84</option><option value="85">85</option><option value="86">86</option><option value="87">87</option><option value="88">88</option><option value="89">89</option><option value="90">90</option><option value="91">91</option><option value="92">92</option><option value="93">93</option><option value="94">94</option><option value="95">95</option><option value="972">972</option><option value="974">974</option><option value="98">98</option><option value="AB">AB</option><option value="DP">DP</option></select>
-<span id="fa-wrap"><select class="sel" id="fa" onchange="af()"><option value="">Agent</option><option value="ARA">ARA</option><option value="BAS">BAS</option><option value="BBO">BBO</option><option value="BCH">BCH</option><option value="BRE">BRE</option><option value="BRU">BRU</option><option value="CAG">CAG</option><option value="CBI">CBI</option><option value="CJA">CJA</option><option value="CQU">CQU</option><option value="CSA">CSA</option><option value="DCA">DCA</option><option value="DES">DES</option><option value="FCA">FCA</option><option value="FET">FET</option><option value="FLA">FLA</option><option value="FLE">FLE</option><option value="FVI">FVI</option><option value="GPI">GPI</option><option value="GSA">GSA</option><option value="JBF">JBF</option><option value="JMA">JMA</option><option value="JMO">JMO</option><option value="JWI">JWI</option><option value="KDU">KDU</option><option value="LAM">LAM</option><option value="LCB">LCB</option><option value="LVS">LVS</option><option value="MAC">MAC</option><option value="MBO">MBO</option><option value="MBO (ex-JBF)">MBO (ex-JBF)</option><option value="MJU">MJU</option><option value="MPA">MPA</option><option value="MPE">MPE</option><option value="MRE">MRE</option><option value="NBE">NBE</option><option value="PCR">PCR</option><option value="PMA">PMA</option><option value="PSE">PSE</option><option value="RLE">RLE</option><option value="TMO">TMO</option><option value="TPL">TPL</option><option value="VBO">VBO</option><option value="YCE">YCE</option><option value="YDI">YDI</option></select></span>
+<span id="fa-wrap"><select class="sel" id="fa" onchange="af()"><option value="">Agent</option></select></span>
 <select class="sel" id="fs" onchange="af()"><option value="">Source</option><option value="VCF">VCF</option><option value="CRM">CRM</option><option value="MULTI">Multi</option></select>
 <select class="sel" id="fmail" onchange="af()"><option value="">Email</option><option value="1">Avec email</option><option value="0">Sans email</option></select>
 <select class="sel" id="fphone" onchange="af()"><option value="">T&eacute;l</option><option value="1">Avec t&eacute;l</option><option value="0">Sans t&eacute;l</option></select>
@@ -691,6 +691,7 @@ Array.from(regions).sort().forEach(r=>{const o=document.createElement('option');
 const fdSel=document.getElementById('fd');
 fdSel.innerHTML='<option value="">D\u00e9pt</option>';
 Array.from(depts).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;fdSel.appendChild(o)});
+populateAgentFilter();
 af();
 // Update UI for role
 document.getElementById('nav-agent-code').textContent=currentAgent||'FSD';
@@ -2433,6 +2434,13 @@ clientsOrderData=clientsOrderData.filter(function(x){return x.id!==id});renderCl
 
 
 // ===== Transfert / fusion de codes agents =====
+function populateAgentFilter(){
+var sel=document.getElementById('fa');if(!sel)return;
+var cur=sel.value;
+var codes=Array.from(new Set((D||[]).map(function(c){return c.agent}).filter(Boolean))).sort();
+sel.innerHTML='<option value="">Agent</option>'+codes.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>'}).join('');
+sel.value=(cur&&codes.indexOf(cur)>=0)?cur:'';
+}
 function populateTransferCodes(){
 var src=document.getElementById('tr-src'),dl=document.getElementById('tr-tgt-list');
 if(!src)return;
@@ -2459,7 +2467,7 @@ var a3=r3.ok?await r3.json():[];report.push(a3.length+' relance(s)');
 st.textContent='Code "'+src+'" supprime: '+report.join(', ')+' desassignes.';st.style.color='var(--green)';
 showSaved('Code '+src+' supprime');
 (D||[]).forEach(function(c){if(c.agent===src)c.agent=''});
-populateTransferCodes();
+populateTransferCodes();populateAgentFilter();af();
 }catch(e){st.textContent='Erreur: '+e.message;st.style.color='var(--red)';}
 }
 async function runTransfer(){
@@ -2493,7 +2501,7 @@ showSaved('Transfert effectue');
 // recharger les donnees clients en memoire
 if(typeof loadData==='function'){loadData()}
 else{(D||[]).forEach(function(c){if(c.agent===src)c.agent=tgt})}
-populateTransferCodes();
+populateTransferCodes();populateAgentFilter();af();
 }catch(e){st.textContent='Erreur: '+e.message;st.style.color='var(--red)'}
 }
 
@@ -2625,7 +2633,22 @@ try{
 await sbFetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+id,{
 method:'DELETE',headers:sbHeaders()
 });
+// Nettoyer le portefeuille rattache au code (clients, commandes, relances)
+if(code){
+var nb=(D||[]).filter(function(c){return c.agent===code}).length;
+if(nb>0){
+var tgt=prompt(nb+' client(s) sont encore rattaches au code '+code+'.\nEntre un code cible pour les transferer (ex: MBO), ou laisse vide pour les desassigner :','');
+if(tgt!==null){
+tgt=(tgt||'').trim().toUpperCase();
+await fetch(SUPABASE_URL+'/rest/v1/contacts?agent=eq.'+encodeURIComponent(code),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({agent:tgt})});
+await fetch(SUPABASE_URL+'/rest/v1/commandes?agent_code=eq.'+encodeURIComponent(code),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({agent_code:tgt})});
+await fetch(SUPABASE_URL+'/rest/v1/relances?code_agent=eq.'+encodeURIComponent(code),{method:'PATCH',headers:sbHeaders(),body:JSON.stringify({code_agent:tgt})});
+(D||[]).forEach(function(c){if(c.agent===code)c.agent=tgt});
+}
+}
+}
 showSaved('Agent '+code+' supprimé');
+populateAgentFilter();populateTransferCodes();af();
 await loadProfiles();
 }catch(e){console.error('Delete agent error',e);alert('Erreur: '+e.message)}
 }
@@ -2724,4 +2747,4 @@ checkSession();
 
 
 </body>
-</html>                                                                                                
+</html>
