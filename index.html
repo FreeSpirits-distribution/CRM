@@ -555,6 +555,11 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <button class="btn btn-blue" onclick="runTransfer()">Transf&eacute;rer / Renommer</button>
 <button class="btn btn-ghost" onclick="deleteAgentCode()" style="color:var(--red);border-color:var(--red)">Supprimer le code source</button>
 <span id="tr-status" style="font-size:12px;color:var(--gray-40)"></span>
+<div style="flex-basis:100%;border-top:1px solid var(--gray-05);padding-top:12px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+<div><label style="font-size:11px;font-weight:700;color:var(--gray-40);text-transform:uppercase">Nouveau code agent</label><br><input id="tr-new" class="sel" placeholder="ex: XPO" maxlength="6" autocomplete="off" style="text-transform:uppercase;width:110px"></div>
+<button class="btn btn-blue" onclick="createAgentCode()">Cr&eacute;er le code</button>
+<span style="font-size:11px;color:var(--gray-40)">Le code appara&icirc;t dans les listes ; il devient permanent d&egrave;s qu'un client ou un profil l'utilise.</span>
+</div>
 </div>
 <div class="ca-header" style="margin-top:32px">
 <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Clients Order (commande en ligne)</h2>
@@ -779,7 +784,7 @@ h+=panelInput('Contact','pf-contact',c.contact,'text','');
 h+=panelInput('Type','pf-type',c.type,'text','');
 h+=panelSelect('Classification','pf-classif',c.classif,classifOptions,'');
 h+=panelSelect('Priorite','pf-prio',c.prio||'',prioOptions,'');
-if(canSeeAll()){var _agc=Array.from(new Set(D.map(function(x){return x.agent}).filter(Boolean))).sort();h+='<div class="pan-field"><label>Agent</label><input id="pf-agent" list="pf-agent-list" value="'+esc(c.agent||'')+'" placeholder="Chercher un code agent..." style="text-transform:uppercase" autocomplete="off"><datalist id="pf-agent-list">'+_agc.map(function(a){return '<option value="'+esc(a)+'"></option>'}).join('')+'</datalist></div>';}
+if(canSeeAll()){var _set=new Set(D.map(function(x){return x.agent}).filter(Boolean));getExtraCodes().forEach(function(x){_set.add(x)});var _agc=Array.from(_set).sort();h+='<div class="pan-field"><label>Agent</label><input id="pf-agent" list="pf-agent-list" value="'+esc(c.agent||'')+'" placeholder="Chercher un code agent..." style="text-transform:uppercase" autocomplete="off"><datalist id="pf-agent-list">'+_agc.map(function(a){return '<option value="'+esc(a)+'"></option>'}).join('')+'</datalist></div>';}
 h+=panelInput('Telephone','pf-tel',c.tel,'text','');
 h+=panelInput('Portable','pf-port',c.port,'text','');
 h+=panelInput('Email','pf-email',c.email,'email','full');
@@ -2535,11 +2540,26 @@ var codes=Array.from(new Set((D||[]).map(function(c){return c.agent}).filter(Boo
 sel.innerHTML='<option value="">Agent</option>'+codes.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>'}).join('');
 sel.value=(cur&&codes.indexOf(cur)>=0)?cur:'';
 }
-function populateTransferCodes(){
+function getExtraCodes(){try{return JSON.parse(localStorage.getItem('fsd_extra_codes')||'[]')}catch(e){return[]}}
+function createAgentCode(){
+var v=(document.getElementById('tr-new').value||'').trim().toUpperCase();
+if(!/^[A-Z0-9]{2,6}$/.test(v)){alert('Code invalide : 2 à 6 lettres/chiffres, sans espace.');return}
+var ex=getExtraCodes();
+if(ex.indexOf(v)===-1){ex.push(v);localStorage.setItem('fsd_extra_codes',JSON.stringify(ex))}
+document.getElementById('tr-new').value='';
+populateTransferCodes();populateAgentFilter();
+showSaved('Code '+v+' créé');
+}
+async function populateTransferCodes(){
 var src=document.getElementById('tr-src'),dl=document.getElementById('tr-tgt-list');
 if(!src)return;
-var codes=new Set();
+var codes=new Set(getExtraCodes());
 (D||[]).forEach(function(c){if(c.agent)codes.add(c.agent)});
+// Codes portes par les profils agents (meme sans client rattache)
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/profiles?select=agent_code,agent_codes',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(r.ok){(await r.json()).forEach(function(p){if(p.agent_code)codes.add(p.agent_code);(p.agent_codes||[]).forEach(function(x){if(x)codes.add(x)})})}
+}catch(_e){}
 var list=[...codes].sort();
 src.innerHTML='<option value="">-- choisir --</option>'+list.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('');
 if(dl)dl.innerHTML=list.map(function(c){return '<option value="'+esc(c)+'"></option>'}).join('');
