@@ -518,6 +518,18 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <button class="btn btn-blue" onclick="saveFranco()">Enregistrer</button>
 <span style="font-size:11px;color:var(--gray-40)">Seuil affich&eacute; dans le panier du portail Order et propos&eacute; dans les proformas.</span>
 </div>
+<div class="ca-header"><h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Journal des modifications</h2>
+<div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
+<select class="sel" id="al-table" onchange="renderAuditLog()"><option value="">Clients + Produits</option><option value="contacts">Clients</option><option value="produits">Produits</option></select>
+<input type="text" class="search" id="al-search" placeholder="Filtrer (nom, auteur...)" oninput="renderAuditLog()" style="width:220px">
+<span id="al-count" style="font-size:13px;color:var(--gray-40)"></span>
+</div>
+</div>
+<div class="tbl-wrap" style="max-height:420px;overflow-y:auto">
+<table class="admin-tbl"><thead><tr>
+<th style="width:110px">Quand</th><th>Par qui</th><th style="width:110px">Action</th><th>Fiche</th><th>D&eacute;tail</th>
+</tr></thead><tbody id="al-tbody"></tbody></table>
+</div>
 <div class="ca-header" id="adm-h-prof">
 <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Gestion des profils agents</h2>
 <div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
@@ -713,8 +725,8 @@ const DCOL=['#b87333','#6b8f5e','#d4a054','#8b6b8a','#c45c5c'];
 
 function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector();renderRelances()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){
 var _kids=document.getElementById('tab-admin').children;
-for(var _i=2;_i<_kids.length;_i++){if(_kids[_i].classList&&_kids[_i].classList.contains('ca-add-modal-overlay'))continue;_kids[_i].style.display=isAdminRole()?'':'none';}
-loadSettings();
+for(var _i=4;_i<_kids.length;_i++){if(_kids[_i].classList&&_kids[_i].classList.contains('ca-add-modal-overlay'))continue;_kids[_i].style.display=isAdminRole()?'':'none';}
+loadSettings();loadAuditLog();
 if(isAdminRole()){loadProfiles();loadClientsOrder();populateTransferCodes()}
 }}
 
@@ -2413,6 +2425,43 @@ st.textContent="Image envoyee";st.style.color='var(--green)';
 
 // ===== Clients Order (gestion Admin) =====
 let clientsOrderData=[];
+// ===== Journal des modifications (audit) =====
+let auditLogData=[];
+async function loadAuditLog(){
+if(!canSeeAll())return;
+var tb=document.getElementById('al-tbody');if(!tb)return;
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/audit_log?select=*&order=at.desc&limit=200',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(!r.ok){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Journal indisponible — le SQL audit_log a-t-il été exécuté ?</td></tr>';return}
+auditLogData=await r.json();
+renderAuditLog();
+}catch(e){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Erreur: '+esc(e.message)+'</td></tr>'}
+}
+function renderAuditLog(){
+var tb=document.getElementById('al-tbody');if(!tb)return;
+var ft=document.getElementById('al-table').value;
+var q=(document.getElementById('al-search').value||'').toLowerCase();
+var rows=auditLogData.filter(function(l){
+if(ft&&l.table_name!==ft)return false;
+if(q&&!(((l.row_label||'')+' '+(l.user_email||'')+' '+(l.agent_code||'')).toLowerCase().includes(q)))return false;
+return true});
+document.getElementById('al-count').textContent=rows.length+' entrée(s)';
+if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--gray-40);padding:16px">Aucune modification enregistrée pour l\'instant</td></tr>';return}
+var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)']};
+tb.innerHTML=rows.map(function(l){
+var d=new Date(l.at);
+var when=d.toLocaleDateString('fr-FR')+'<br>'+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+var who=(l.user_email||'—')+(l.agent_code?' ('+l.agent_code+')':'');
+var a=AC[l.action]||[l.action,'var(--gray-40)'];
+var detail='';
+if(l.action==='UPDATE'&&l.changes){
+detail=Object.keys(l.changes).map(function(k){var c=l.changes[k]||{};var av=(c.avant===null||c.avant===undefined)?'—':String(c.avant);var ap=(c.apres===null||c.apres===undefined)?'—':String(c.apres);if(av.length>28)av=av.slice(0,28)+'…';if(ap.length>28)ap=ap.slice(0,28)+'…';return k+' : '+av+' → '+ap}).join(' ; ');
+}else if(l.action==='DELETE'){detail='Fiche supprimée (contenu conservé dans le journal)';}
+else{detail='Nouvelle fiche';}
+if(detail.length>240)detail=detail.slice(0,240)+'…';
+return '<tr><td style="font-size:11px;white-space:nowrap">'+when+'</td><td style="font-size:11px">'+esc(who)+'</td><td><span class="bdg" style="background:'+a[1]+';color:#fff">'+a[0]+'</span></td><td style="font-size:12px"><b>'+esc(l.row_label||'—')+'</b><div style="font-size:10px;color:var(--gray-40)">'+(l.table_name==='contacts'?'Client':'Produit')+'</div></td><td style="font-size:11px">'+esc(detail)+'</td></tr>';
+}).join('');
+}
 let appSettings={};
 async function loadSettings(){
 try{
