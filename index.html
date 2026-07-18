@@ -566,7 +566,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 </div>
 <div class="tbl-wrap">
 <table class="admin-tbl"><thead><tr>
-<th>Nom</th><th>Email</th><th>T&eacute;l</th><th>Statut</th><th>Cr&eacute;&eacute; le</th><th>Notes</th><th style="width:170px"></th>
+<th>Nom</th><th>Email</th><th>T&eacute;l</th><th>Acc&egrave;s</th><th>Statut</th><th>Cr&eacute;&eacute; le</th><th>Notes</th><th style="width:170px"></th>
 </tr></thead><tbody id="co-tbody"></tbody></table>
 </div>
 <div class="ca-add-modal-overlay" id="co-edit-ov" style="display:none" onclick="closeClientOrder(event)">
@@ -2367,29 +2367,40 @@ st.textContent="Image envoyee";st.style.color='var(--green)';
 
 // ===== Clients Order (gestion Admin) =====
 let clientsOrderData=[];
+let clientAccountIds=new Set();
 async function loadClientsOrder(){
 if(!isAdminRole())return;
 var tb=document.getElementById('co-tbody');if(!tb)return;
 try{
 var res=await fetch(SUPABASE_URL+'/rest/v1/clients_order?select=*&order=nom',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
-if(!res.ok){tb.innerHTML='<tr><td colspan="7" style="color:var(--red);padding:20px">Erreur chargement (HTTP '+res.status+'). Migration SQL appliquee ?</td></tr>';return}
+if(!res.ok){tb.innerHTML='<tr><td colspan="8" style="color:var(--red);padding:20px">Erreur chargement (HTTP '+res.status+'). Migration SQL appliquee ?</td></tr>';return}
 clientsOrderData=await res.json();
+// Les fiches dont l'id correspond a un profil = comptes de connexion reels
+try{
+var pr=await fetch(SUPABASE_URL+'/rest/v1/profiles?select=id',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(pr.ok){clientAccountIds=new Set((await pr.json()).map(function(x){return x.id}))}
+}catch(_e){}
 renderClientsOrder();
-}catch(e){tb.innerHTML='<tr><td colspan="7" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
+}catch(e){tb.innerHTML='<tr><td colspan="8" style="color:var(--red);padding:20px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
 function renderClientsOrder(){
 var tb=document.getElementById('co-tbody');if(!tb)return;
 var q=(document.getElementById('co-search').value||'').toLowerCase();
 var rows=clientsOrderData.filter(function(c){return !q||(c.nom||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q)});
 document.getElementById('co-count').textContent=rows.length+' client(s)';
-if(!rows.length){tb.innerHTML='<tr><td colspan="7" style="color:var(--gray-40);padding:20px">Aucun client Order</td></tr>';return}
+if(!rows.length){tb.innerHTML='<tr><td colspan="8" style="color:var(--gray-40);padding:20px">Aucun client Order</td></tr>';return}
 tb.innerHTML=rows.map(function(c){
 var blocked=!!c.blocked;
 var d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR'):'-';
+var hasAccount=clientAccountIds.has(c.id);
+var accessCell=hasAccount
+?'<span class="bdg" style="background:var(--green);color:#fff">Compte</span>'
+:(c.email?'<button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;white-space:nowrap" onclick="createAccessFor(\''+c.id+'\')" title="Creer le compte de connexion Order pour ce client">Cr&eacute;er l\'acc&egrave;s</button>':'<span style="font-size:11px;color:var(--gray-40)">Fiche seule</span>');
 return '<tr'+(blocked?' style="opacity:.55"':'')+'>'+
 '<td><strong>'+esc(c.nom||'-')+'</strong></td>'+
 '<td style="font-size:12px">'+esc(c.email||'-')+'</td>'+
 '<td>'+esc(c.tel||'-')+'</td>'+
+'<td>'+accessCell+'</td>'+
 '<td>'+(blocked?'<span style="color:var(--red);font-weight:700">Bloque</span>':'<span style="color:var(--green);font-weight:700">Actif</span>')+'</td>'+
 '<td style="font-size:12px">'+d+'</td>'+
 '<td style="font-size:11px;color:var(--gray-40)">'+esc(c.notes||'')+'</td>'+
@@ -2417,6 +2428,21 @@ document.getElementById('co-edit-ov').style.display='flex';
 function closeClientOrder(e){
 if(e&&e.target&&e.target!==document.getElementById('co-edit-ov'))return;
 document.getElementById('co-edit-ov').style.display='none';coEditId=null;
+}
+function createAccessFor(id){
+var c=clientsOrderData.find(function(x){return x.id===id});
+if(!c)return;
+if(!c.email){alert('Renseigne d\'abord un email sur la fiche (bouton crayon).');return}
+coEditId=null;
+document.getElementById('co-edit-title').textContent='Créer l\'accès : '+(c.nom||c.email);
+document.getElementById('co-nom').value=c.nom||'';
+document.getElementById('co-email').value=c.email||'';
+document.getElementById('co-tel').value=c.tel||'';
+document.getElementById('co-blocked').value=c.blocked?'true':'false';
+document.getElementById('co-notes').value=c.notes||'';
+document.getElementById('co-pwd-wrap').style.display='';
+genOrderPwd();
+document.getElementById('co-edit-ov').style.display='flex';
 }
 async function saveClientOrder(){
 var nom=document.getElementById('co-nom').value.trim();
