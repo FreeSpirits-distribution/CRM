@@ -702,20 +702,21 @@ document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
-document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
+document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 if(!canSeeAll()){document.getElementById('kpi-sector').querySelector('.kpi-lbl').textContent='Mon secteur';var _ka=document.getElementById('k-a').closest('.kpi');if(_ka)_ka.style.display='none';var _kt=document.getElementById('k-top').closest('.kpi');if(_kt)_kt.style.display='none';}}
 
 function nrm(s){return (s==null?'':String(s)).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-function af(){const q=nrm(document.getElementById('q').value),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value,fmail=document.getElementById('fmail').value,fphone=document.getElementById('fphone').value;
+function af(keepPage){const q=nrm(document.getElementById('q').value),reg=document.getElementById('fr').value,dept=document.getElementById('fd').value,age=document.getElementById('fa').value,src=document.getElementById('fs').value,fmail=document.getElementById('fmail').value,fphone=document.getElementById('fphone').value;
 F=D.filter(c=>{if(!canSeeAll()&&!currentAgentCodes.includes(c.agent))return false;if(q){var _h=nrm((c.nom||'')+' '+(c.ville||'')+' '+(c.email||'')+' '+(c.cp||'')+' '+(c.contact||'')+' '+(c.dept||'')+' '+(c.tel||'')+' '+(c.port||'')+' '+(c.agent||'')+' '+(c.n_clt||''));if(!_h.includes(q))return false;}if(reg&&c.region!==reg)return false;if(dept&&c.dept!==dept)return false;if(age&&c.agent!==age)return false;if(src==='VCF'&&!c.src.includes('VCF'))return false;if(src==='CRM'&&c.src.includes('VCF'))return false;if(src==='MULTI'&&!c.src.includes('|'))return false;if(ac.size>0&&!ac.has(c.classif))return false;if(fmail==='1'&&!((c.email||'').trim()))return false;if(fmail==='0'&&((c.email||'').trim()))return false;var _ph=((c.tel||'')+(c.port||'')).trim();if(fphone==='1'&&!_ph)return false;if(fphone==='0'&&_ph)return false;return true});
-ds();cp=1;render();uk()}
-function ds(){F.sort((a,b)=>{let va=a[sc],vb=b[sc];if(sc==='ca'||sc==='score')return(va-vb)*sd;va=String(va).toLowerCase();vb=String(vb).toLowerCase();return va<vb?-sd:va>vb?sd:0})}
+ds();if(keepPage){const _tp=Math.max(1,Math.ceil(F.length/PS));if(cp>_tp)cp=_tp}else{cp=1}render();uk()}
+const CLASSIF_ORDER={TOP:1,ACTIF:2,CLIENT:3,PROSPECT:4,INACTIF:5,AGENT:6};
+function ds(){F.sort((a,b)=>{let va=a[sc],vb=b[sc];if(sc==='ca'||sc==='score')return(va-vb)*sd;if(sc==='classif'){const ra=CLASSIF_ORDER[va]||9,rb=CLASSIF_ORDER[vb]||9;if(ra!==rb)return(ra-rb)*sd;return 0}va=String(va).toLowerCase();vb=String(vb).toLowerCase();return va<vb?-sd:va>vb?sd:0})}
 function sb(c){if(sc===c)sd*=-1;else{sc=c;sd=(c==='ca'||c==='score')?-1:1}ds();render()}
 
 function render(){const s=(cp-1)*PS,pg=F.slice(s,s+PS),tb=document.getElementById('tb');
 tb.innerHTML=pg.map((c,i)=>{const m=CM[c.classif]||{l:c.classif,c:''};const mbo=c.mbo?'<span class="bdg bdg-mbo">MBO</span>':'';const vcf=c.src.includes('VCF')?'<span class="bdg bdg-vcf">VCF</span>':'';const ph=c.port||c.tel||'';const phLink=ph?'<a href="tel:'+encodeURIComponent(ph.replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation()">'+esc(ph)+'</a>':'';const em=c.email?'<a href="mailto:'+encodeURIComponent(c.email)+'" onclick="event.stopPropagation()">'+esc(c.email)+'</a>':'';
 const sp=Math.min(100,c.score);const sc_col=sp>60?'var(--green)':sp>30?'var(--orange)':'var(--gray-20)';
-return '<tr onclick="openP('+(s+i)+')"><td><div class="score-bar"><div class="score-fill" style="width:'+sp+'%;background:'+sc_col+'"></div></div> <span style="font-size:11px;font-weight:700;color:var(--gray-40)">'+c.score+'</span></td><td class="nom-cell">'+esc(c.nom)+mbo+vcf+'</td><td>'+esc(c.ville)+'</td><td>'+esc(c.dept)+'</td><td>'+esc(c.region)+'</td><td><span class="bdg '+m.c+'">'+esc(m.l)+'</span></td><td style="font-size:12px">'+phLink+'</td><td style="font-size:12px">'+em+'</td>'+(canSeeAll()?'<td style="text-align:right;font-weight:600">'+(c.ca>0?c.ca.toLocaleString('fr-FR',{minimumFractionDigits:0})+' \u20ac':'-')+'</td>':'')+'<td style="font-size:12px">'+esc(c.agent)+'</td></tr>'}).join('');
+return '<tr onclick="openP('+(s+i)+')"><td><div class="score-bar"><div class="score-fill" style="width:'+sp+'%;background:'+sc_col+'"></div></div> <span style="font-size:11px;font-weight:700;color:var(--gray-40)">'+c.score+'</span></td><td class="nom-cell">'+esc(c.nom)+mbo+vcf+'</td><td>'+esc(c.ville)+'</td><td>'+esc(c.dept)+'</td><td>'+esc(c.region)+'</td><td><span class="bdg '+m.c+'">'+esc(m.l)+'</span></td><td style="font-size:12px">'+phLink+'</td><td style="font-size:12px">'+em+'</td>'+(isAdminRole()?'<td style="text-align:right;font-weight:600">'+(c.ca>0?c.ca.toLocaleString('fr-FR',{minimumFractionDigits:0})+' \u20ac':'-')+'</td>':'')+'<td style="font-size:12px">'+esc(c.agent)+'</td></tr>'}).join('');
 document.getElementById('rc').textContent=F.length+' contacts';document.getElementById('caf').textContent='';renderPg()}
 
 function renderPg(){const tp=Math.ceil(F.length/PS),p=document.getElementById('pg');if(tp<=1){p.innerHTML='';return}let h='<button '+(cp===1?'disabled':'')+' onclick="gp('+(cp-1)+')">&laquo;</button>';const st=Math.max(1,cp-3),en=Math.min(tp,cp+3);for(let i=st;i<=en;i++)h+='<button class="'+(i===cp?'on':'')+'" onclick="gp('+i+')">'+i+'</button>';h+='<button '+(cp===tp?'disabled':'')+' onclick="gp('+(cp+1)+')">&raquo;</button>';p.innerHTML=h}
@@ -771,7 +772,7 @@ h+=panelInput('Commande','pf-cmd',c.cmd,'date','');
 h+=panelInput('Relance','pf-relance',c.relance,'date','');
 h+=panelInput('Source','pf-src',c.src,'text','');
 h+=panelInput('Numero client','pf-nclt',c.n_clt,'text','');
-if(canSeeAll())h+=panelInput('CA','pf-ca',c.ca||0,'number','');
+if(isAdminRole())h+=panelInput('CA','pf-ca',c.ca||0,'number','');
 h+=panelInput('Factures','pf-factures',c.nb_factures||0,'number','');
 if(isAdminRole()&&!panelIsNew){h+=panelInput('Distance Villeneuve','pf-distvda',c.distVDA,'number','');
 h+=panelInput('Distance Herouville','pf-disthsc',c.distHSC,'number','');}
@@ -783,7 +784,7 @@ h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="close
 }else{
 h+='<div class="sec"><h3>Contact</h3>'+rw('Gerant',c.contact)+rwHTML('Tel',c.tel?'<a href="tel:'+encodeURIComponent(c.tel.replace(/[^0-9+]/g,''))+'">'+esc(c.tel)+'</a>':'')+rwHTML('Portable',c.port?'<a href="tel:'+encodeURIComponent(c.port.replace(/[^0-9+]/g,''))+'">'+esc(c.port)+'</a>':'')+rwHTML('Email',c.email?'<a href="mailto:'+encodeURIComponent(c.email)+'">'+esc(c.email)+'</a>':'')+'</div>';
 h+='<div class="sec"><h3>Localisation</h3>'+rw('Adresse',c.adresse)+rw('CP',c.cp)+rw('Ville',c.ville)+rw('Dept',c.dept)+rw('Region',c.region)+(isAdminRole()?rw('Dist. Villeneuve',c.distVDA<9000?c.distVDA+' km':'-')+rw('Dist. Herouville',c.distHSC<9000?c.distHSC+' km':'-'):'')+'</div>';
-h+='<div class="sec"><h3>Commercial</h3>'+(canSeeAll()?rw('CA',c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-'):'')+rw('Type',c.type)+rw('Priorite',c.prio)+rw('Agent',c.agent)+rw('Commande',c.cmd)+rw('Relance',c.relance)+rw('Source',c.src)+'</div>';
+h+='<div class="sec"><h3>Commercial</h3>'+(isAdminRole()?rw('CA',c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-'):'')+rw('Type',c.type)+rw('Priorite',c.prio)+rw('Agent',c.agent)+rw('Commande',c.cmd)+rw('Relance',c.relance)+rw('Source',c.src)+'</div>';
 if(c.comment)h+='<div class="sec"><h3>Notes</h3><div class="note-box">'+esc(c.comment)+'</div></div>';
 h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="closeP()">Fermer</button><button class="btn btn-blue" onclick="setPanelEditMode(true)">Modifier</button></div>';
 }
@@ -844,7 +845,7 @@ panelIsNew=false;
 panelDraftClient=null;
 renderPanel();
 if(document.getElementById('tab-tour').classList.contains('active')&&tourDaysData.length>0)refreshTourDisplay();
-if(typeof af==='function')af();
+if(typeof af==='function')af(true);
 showSaved(isNew?'\u2713 Client ajoute':'\u2713 Fiche client sauvegardee');
 }
 
@@ -1235,7 +1236,7 @@ dirLabel=' \u2022 '+dirNames[idx];
 }
 
 daysHtml+='<div class="day-card d'+(d+1)+'" data-day="'+d+'">';
-daysHtml+='<div class="day-header"><span>'+dayLabel+dirLabel+'</span><span class="day-km">'+stat.km+' km \u2022 '+stat.n+' clients'+(canSeeAll()?(' \u2022 '+stat.ca.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'):'')+'</span></div>';
+daysHtml+='<div class="day-header"><span>'+dayLabel+dirLabel+'</span><span class="day-km">'+stat.km+' km \u2022 '+stat.n+' clients'+(isAdminRole()?(' \u2022 '+stat.ca.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'):'')+'</span></div>';
 if(deptSet)daysHtml+='<div style="padding:4px 14px;font-size:10px;color:var(--gray-40);background:var(--gray-05)">D\u00e9pts: '+deptSet+'</div>';
 daysHtml+='<div class="day-list" id="daylist-'+d+'">';
 clients.forEach((c,i)=>{
@@ -1344,7 +1345,7 @@ closeQE();
 // Refresh tour only if tab active and tour exists (avoid resetting manual arrangements)
 if(document.getElementById('tab-tour').classList.contains('active')&&tourDaysData.length>0)refreshTourDisplay();
 // Refresh CRM table
-if(typeof af==='function')af();
+if(typeof af==='function')af(true);
 },800);
 }
 
@@ -1494,7 +1495,7 @@ dirLabel=' \u2022 '+dirNames[idx];
 }
 
 daysHtml+='<div class="day-card d'+(d+1)+'" data-day="'+d+'">';
-daysHtml+='<div class="day-header"><span>'+dayLabel+dirLabel+'</span><span class="day-km">'+stat.km+' km \u2022 '+stat.n+' clients'+(canSeeAll()?(' \u2022 '+stat.ca.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'):'')+'</span></div>';
+daysHtml+='<div class="day-header"><span>'+dayLabel+dirLabel+'</span><span class="day-km">'+stat.km+' km \u2022 '+stat.n+' clients'+(isAdminRole()?(' \u2022 '+stat.ca.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'):'')+'</span></div>';
 if(deptSet)daysHtml+='<div style="padding:4px 14px;font-size:10px;color:var(--gray-40);background:var(--gray-05)">D\u00e9pts: '+deptSet+'</div>';
 daysHtml+='<div class="day-list" id="daylist-'+d+'">';
 clients.forEach((c,i)=>{
@@ -1574,7 +1575,7 @@ if(c.contact)details+='Contact: '+c.contact+'\n';
 if(c.port)details+='Portable: '+c.port+'\n';
 if(c.tel)details+='T\u00e9l: '+c.tel+'\n';
 if(c.email)details+='Email: '+c.email+'\n';
-if(canSeeAll()&&c.ca>0)details+='CA: '+c.ca.toLocaleString('fr-FR')+' \u20ac\n';
+if(isAdminRole()&&c.ca>0)details+='CA: '+c.ca.toLocaleString('fr-FR')+' \u20ac\n';
 details+='Classification: '+c.classif+'\n';
 details+='Score: '+c.score+'\n';
 if(c.comment)details+='Notes: '+c.comment+'\n';
@@ -1609,14 +1610,14 @@ if(!tourDaysData||tourDaysData.length===0)return;
 const weekVal=document.getElementById('t-week').value;
 let weekLabel='';
 if(weekVal){const [y,w]=weekVal.split('-');weekLabel='S'+w+'_'+y+'_'}
-let csv='JOUR;DATE;ETAPE;NOM;VILLE;DEPT;CP;TEL;PORTABLE;EMAIL;'+(canSeeAll()?'CA;':'')+'SCORE;CLASSIF;PRIORITE;COMMENTAIRE\n';
+let csv='JOUR;DATE;ETAPE;NOM;VILLE;DEPT;CP;TEL;PORTABLE;EMAIL;'+(isAdminRole()?'CA;':'')+'SCORE;CLASSIF;PRIORITE;COMMENTAIRE\n';
 const [wy,ww]=weekVal?weekVal.split('-').map(Number):[2026,1];
 const ws=getWeekStart(wy,ww);
 tourDaysData.forEach((day,d)=>{
 const dayDate=new Date(ws);dayDate.setDate(ws.getDate()+d);
 const dateStr=dayDate.toISOString().split('T')[0];
 day.forEach((c,i)=>{
-var _tr=[JOURS_FR[d],dateStr,i+1,c.nom,c.ville||'',c.dept,c.cp,c.tel||'',c.port||'',c.email||''];if(canSeeAll())_tr.push(c.ca||0);_tr=_tr.concat([c.score,c.classif,c.prio||'',c.comment||'']);csv+=_tr.map(csvCell).join(';')+'\n';
+var _tr=[JOURS_FR[d],dateStr,i+1,c.nom,c.ville||'',c.dept,c.cp,c.tel||'',c.port||'',c.email||''];if(isAdminRole())_tr.push(c.ca||0);_tr=_tr.concat([c.score,c.classif,c.prio||'',c.comment||'']);csv+=_tr.map(csvCell).join(';')+'\n';
 });
 });
 const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
@@ -1629,7 +1630,7 @@ async function markRelanceDone(id){var c=D.find(function(x){return String(x.id)=
 
 // ---- switchTab already handles tour init ----
 
-function exportCSV(){const showCA=canSeeAll();const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;'+(showCA?'CA;':'')+'PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>{var row=[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email];if(showCA)row.push(c.ca);row=row.concat([c.prio,c.agent,c.distVDA,c.distHSC,c.src]);return row.map(csvCell).join(';')}).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
+function exportCSV(){const showCA=isAdminRole();const h='NOM;CONTACT;TYPE;STATUT;SCORE;ADRESSE;CP;VILLE;DEPT;REGION;MBO;TEL;PORTABLE;EMAIL;'+(showCA?'CA;':'')+'PRIORITE;AGENT;DIST_VDA;DIST_HSC;SOURCE\n';const r=F.map(c=>{var row=[c.nom,c.contact,c.type,c.classif,c.score,c.adresse,c.cp,c.ville,c.dept,c.region,c.mbo?'OUI':'',c.tel,c.port,c.email];if(showCA)row.push(c.ca);row=row.concat([c.prio,c.agent,c.distVDA,c.distHSC,c.src]);return row.map(csvCell).join(';')}).join('\n');const b=new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='CRM_FSD_'+currentAgent+'_export.csv';a.click()}
 
 function vcardEsc(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,' ')}
 function exportVCard(){
@@ -2039,7 +2040,7 @@ document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
-document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
+document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 // Force CRM tab active
 switchTab('crm');
 document.getElementById('loading-screen').style.display='none';
@@ -2710,7 +2711,7 @@ document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('fa-wrap').style.display=canSeeAll()?'':'none';
-document.getElementById('th-ca').style.display=canSeeAll()?'':'none';
+document.getElementById('th-ca').style.display=isAdminRole()?'':'none';
 switchTab('crm');
 document.getElementById('loading-screen').style.display='none';
 document.getElementById('app-content').style.display='block';
