@@ -520,8 +520,8 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 </div>
 <div class="ca-header"><h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Journal des modifications</h2>
 <div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
-<select class="sel" id="al-table" onchange="renderAuditLog()"><option value="">Tout</option><option value="contacts">Modifications clients</option><option value="produits">Modifications produits</option><option value="login_staff">Connexions &eacute;quipe</option><option value="login_client">Connexions clients</option></select>
-<input type="text" class="search" id="al-search" placeholder="Filtrer (nom, auteur...)" oninput="renderAuditLog()" style="width:220px">
+<select class="sel" id="al-table" onchange="auditLogExpanded=false;renderAuditLog()"><option value="">Tout</option><option value="contacts">Modifications clients</option><option value="produits">Modifications produits</option><option value="login_staff">Connexions &eacute;quipe</option><option value="login_client">Connexions clients</option></select>
+<input type="text" class="search" id="al-search" placeholder="Filtrer (nom, auteur...)" oninput="auditLogExpanded=false;renderAuditLog()" style="width:220px">
 <span id="al-count" style="font-size:13px;color:var(--gray-40)"></span>
 </div>
 </div>
@@ -2427,6 +2427,7 @@ st.textContent="Image envoyee";st.style.color='var(--green)';
 let clientsOrderData=[];
 // ===== Journal des modifications (audit) =====
 let auditLogData=[];
+let auditLogExpanded=false;
 async function loadAuditLog(){
 if(!canSeeAll())return;
 var tb=document.getElementById('al-tbody');if(!tb)return;
@@ -2453,7 +2454,8 @@ return true});
 document.getElementById('al-count').textContent=rows.length+' entrée(s)';
 if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--gray-40);padding:16px">Aucune modification enregistrée pour l\'instant</td></tr>';return}
 var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)'],LOGIN:['Connexion','var(--green)']};
-tb.innerHTML=rows.map(function(l){
+var shown=auditLogExpanded?rows:rows.slice(0,4);
+tb.innerHTML=shown.map(function(l){
 var d=new Date(l.at);
 var when=d.toLocaleDateString('fr-FR')+'<br>'+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 var who=(l.user_email||'—')+(l.agent_code?' ('+l.agent_code+')':'');
@@ -2470,6 +2472,9 @@ else{detail='Nouvelle fiche';}
 if(detail.length>240)detail=detail.slice(0,240)+'…';
 return '<tr><td style="font-size:11px;white-space:nowrap">'+when+'</td><td style="font-size:11px">'+esc(who)+'</td><td><span class="bdg" style="background:'+a[1]+';color:#fff">'+a[0]+'</span></td><td style="font-size:12px"><b>'+esc(l.row_label||'—')+'</b><div style="font-size:10px;color:var(--gray-40)">'+(l.table_name==='contacts'?'Client':'Produit')+'</div></td><td style="font-size:11px">'+esc(detail)+'</td></tr>';
 }).join('');
+if(rows.length>4){
+tb.innerHTML+='<tr><td colspan="5" style="text-align:center;padding:10px;background:var(--gray-05)"><button class="btn btn-ghost" style="padding:5px 16px;font-size:11px" onclick="auditLogExpanded=!auditLogExpanded;renderAuditLog()">'+(auditLogExpanded?'&#9650; Réduire — ne garder que les 4 derniers':'&#9660; Afficher les '+(rows.length-4)+' mouvements précédents')+'</button></td></tr>';
+}
 }
 let appSettings={};
 async function loadSettings(){
