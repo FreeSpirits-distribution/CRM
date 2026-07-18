@@ -142,7 +142,7 @@ label{font-family:'Archivo',sans-serif}
 <div><label>Quantit&eacute; (bouteilles)</label><input type="number" id="pf-qty" min="1" step="1" value="6" onchange="updateQtyHint()"></div>
 <div><label>Prix HDHT unitaire</label><input type="number" id="pf-hdht" step="0.01" min="0"></div>
 <div><label>Remise %</label><input type="number" id="pf-remise" min="0" max="100" step="0.5" value="0"></div>
-<div style="display:flex;align-items:center;gap:8px;padding-top:18px"><input type="checkbox" id="pf-animation" style="width:auto;accent-color:var(--copper)"><label for="pf-animation" style="text-transform:none;font-weight:600;color:var(--text);margin:0;cursor:pointer">Animation (-25% HDHT sur 1 btl)</label></div>
+<div id="anim-wrap" style="display:none;align-items:center;gap:8px;padding-top:18px"><input type="checkbox" id="pf-animation" style="width:auto;accent-color:var(--copper)"><label for="pf-animation" style="text-transform:none;font-weight:600;color:var(--text);margin:0;cursor:pointer">Animation (-25% HDHT sur 1 btl)</label></div>
 </div>
 <div id="pf-qty-hint" class="hint"></div>
 <div class="actions">
@@ -216,6 +216,13 @@ let CATALOG = []; // Loaded from Supabase
 let sbToken = null;
 let crmContacts = [];
 let userRole = '';
+function applyRoleUI(){
+var w=document.getElementById('anim-wrap');
+if(!w)return;
+var ok=(userRole==='admin'||userRole==='manager');
+w.style.display=ok?'flex':'none';
+if(!ok)document.getElementById('pf-animation').checked=false;
+}
 
 let lines = [];
 let selectedProduct = null;
@@ -258,6 +265,7 @@ async function loadCatalog(){
           });
           if(pRes.ok){const pArr=await pRes.json();if(pArr.length)userRole=pArr[0].role||'agent';}
         }catch(e){console.warn('Could not fetch role',e)}
+        applyRoleUI();
         await loadCRMContacts();
         updateCRMStatus(true);
         updateCAButton();
@@ -417,7 +425,7 @@ function addLine(){
   const qty = parseInt(document.getElementById('pf-qty').value)||0;
   if(qty<1){alert('Quantité invalide.');return;}
   const hdht = parseFloat(document.getElementById('pf-hdht').value)||0;
-  const animation = document.getElementById('pf-animation').checked;
+  const animation = (userRole==='admin'||userRole==='manager') && document.getElementById('pf-animation').checked;
 
   // Check duplicate
   if(lines.some(function(l){return l.name===selectedProduct.name})){
@@ -777,6 +785,7 @@ async function doProformaLogin(){
       const uRes=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}});
       if(uRes.ok){const uD=await uRes.json();const pR=await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+uD.id+'&select=role',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+sbToken}});if(pR.ok){const pA=await pR.json();if(pA.length)userRole=pA[0].role||'agent';}}
     }catch(e){console.warn('Role fetch error',e)}
+    applyRoleUI();
     msg.textContent='\u2713 Connect\u00e9 !';msg.style.color='var(--green)';
     await loadCRMContacts();
     updateCRMStatus(true);
