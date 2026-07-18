@@ -612,6 +612,25 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <input type="file" id="cgv-file" accept="application/pdf" style="font-size:12px">
 <button class="btn btn-blue" onclick="uploadCGV()">Mettre &agrave; jour le CGV</button>
 <span style="font-size:11px;color:var(--gray-40)">Le PDF remplace imm&eacute;diatement celui du lien &laquo; Conditions g&eacute;n&eacute;rales de vente &raquo; en bas du portail Order.</span>
+<div style="flex-basis:100%;border-top:1px solid var(--gray-05);padding-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<a href="https://freespirits-distribution.github.io/Order/mentions-legales.html" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:6px 14px;font-size:12px">Voir les mentions l&eacute;gales</a>
+<button class="btn btn-blue" onclick="openMentionsEditor()">Modifier les mentions l&eacute;gales</button>
+<span style="font-size:11px;color:var(--gray-40)">Le texte modifi&eacute; est publi&eacute; imm&eacute;diatement sur la page publique.</span>
+</div>
+</div>
+
+<div class="ca-add-modal-overlay" id="ml-edit-ov" style="display:none" onclick="closeMentionsEditor(event)">
+<div class="ca-add-modal" onclick="event.stopPropagation()" style="max-width:900px;width:95vw">
+<div class="ca-add-head"><h3>Mentions l&eacute;gales — &eacute;dition</h3><button class="ca-add-close" onclick="closeMentionsEditor()">&times;</button></div>
+<div class="ca-add-body">
+<div style="font-size:11px;color:var(--gray-40);margin-bottom:8px">Contenu HTML de la page : &lt;h2&gt; pour les grands titres, &lt;h3&gt; pour les sous-titres, &lt;p&gt; pour les paragraphes, &lt;ul&gt;&lt;li&gt; pour les listes.</div>
+<textarea id="ml-text" style="width:100%;height:420px;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--gray-10);border-radius:6px;resize:vertical"></textarea>
+</div>
+<div class="ca-add-foot">
+<button class="btn" onclick="closeMentionsEditor()">Annuler</button>
+<button class="btn btn-blue" onclick="saveMentions()">Publier</button>
+</div>
+</div>
 </div>
 <div class="ca-add-modal-overlay" id="co-edit-ov" style="display:none" onclick="closeClientOrder(event)">
 <div class="ca-add-modal" onclick="event.stopPropagation()" style="max-width:460px">
@@ -2512,6 +2531,37 @@ showSaved('CGV mis à jour');
 function initCGVLink(){
 var a=document.getElementById('cgv-current');
 if(a)a.href=SUPABASE_URL+'/storage/v1/object/public/documents/CGV.pdf?v='+Date.now();
+}
+async function openMentionsEditor(){
+var ta=document.getElementById('ml-text');
+ta.value='Chargement...';
+document.getElementById('ml-edit-ov').style.display='flex';
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/app_settings?key=eq.mentions_legales&select=value',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+var a=r.ok?await r.json():[];
+if(a.length&&a[0].value){ta.value=a[0].value;return}
+// Premiere edition : recuperer le texte actuel de la page publique
+var p=await fetch('https://freespirits-distribution.github.io/Order/mentions-legales.html?v='+Date.now());
+var html=await p.text();
+var doc=new DOMParser().parseFromString(html,'text/html');
+var card=doc.getElementById('ml-card');
+ta.value=card?card.innerHTML.trim():'';
+}catch(e){ta.value='';alert('Impossible de charger le texte actuel : '+e.message)}
+}
+function closeMentionsEditor(e){
+if(e&&e.target&&e.target!==document.getElementById('ml-edit-ov'))return;
+document.getElementById('ml-edit-ov').style.display='none';
+}
+async function saveMentions(){
+var v=document.getElementById('ml-text').value.trim();
+if(!v){alert('Le texte est vide.');return}
+if(!confirm('Publier cette version des mentions légales ?\nElle sera immédiatement visible par les clients.'))return;
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/app_settings',{method:'POST',headers:Object.assign({},sbHeaders(),{'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({key:'mentions_legales',value:v})});
+if(!r.ok)throw new Error(await r.text());
+closeMentionsEditor();
+showSaved('Mentions légales publiées');
+}catch(e){alert('Erreur : '+e.message)}
 }
 // ===== Paniers clients Order =====
 async function loadPaniers(){
