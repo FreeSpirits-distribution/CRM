@@ -583,6 +583,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>T&eacute;l&eacute;phone</label><input type="text" id="co-tel"></div>
 <div class="ca-add-field"><label>Statut</label><select id="co-blocked"><option value="false">Actif</option><option value="true">Bloqu&eacute;</option></select></div>
 <div class="ca-add-field full"><label>Notes</label><input type="text" id="co-notes"></div>
+<div class="ca-add-field full"><label>Fiche client CRM (optionnel)</label><input type="text" id="co-contact" list="co-contact-list" placeholder="Chercher une fiche par nom..." autocomplete="off"><datalist id="co-contact-list"></datalist><div style="font-size:11px;color:var(--gray-40);margin-top:4px">Relie ce compte Order &agrave; une fiche du CRM (visible dans la fiche pour admin/manager).</div></div>
 <div class="ca-add-field full" id="co-pwd-wrap"><label>Mot de passe initial (cr&eacute;e le compte de connexion)</label><div style="display:flex;gap:8px"><input type="text" id="co-pwd" placeholder="laisser vide = fiche sans compte" style="flex:1"><button class="btn btn-ghost" type="button" onclick="genOrderPwd()" style="padding:6px 10px;font-size:11px;white-space:nowrap">G&eacute;n&eacute;rer</button></div><div style="font-size:11px;color:var(--gray-40);margin-top:4px">&Agrave; transmettre au client &mdash; il pourra le changer lui-m&ecirc;me dans son espace Order (bouton Mon compte).</div></div>
 </div>
 <div class="ca-add-foot">
@@ -810,10 +811,27 @@ h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="close
 h+='<div class="sec"><h3>Contact</h3>'+rw('Gerant',c.contact)+rwHTML('Tel',c.tel?'<a href="tel:'+encodeURIComponent(c.tel.replace(/[^0-9+]/g,''))+'">'+esc(c.tel)+'</a>':'')+rwHTML('Portable',c.port?'<a href="tel:'+encodeURIComponent(c.port.replace(/[^0-9+]/g,''))+'">'+esc(c.port)+'</a>':'')+rwHTML('Email',c.email?'<a href="mailto:'+encodeURIComponent(c.email)+'">'+esc(c.email)+'</a>':'')+'</div>';
 h+='<div class="sec"><h3>Localisation</h3>'+rw('Adresse',c.adresse)+rw('CP',c.cp)+rw('Ville',c.ville)+rw('Dept',c.dept)+rw('Region',c.region)+(isAdminRole()?rw('Dist. Villeneuve',c.distVDA<9000?c.distVDA+' km':'-')+rw('Dist. Herouville',c.distHSC<9000?c.distHSC+' km':'-'):'')+'</div>';
 h+='<div class="sec"><h3>Commercial</h3>'+(isAdminRole()?rw('CA',c.ca>0?c.ca.toLocaleString('fr-FR')+' \u20ac':'-'):'')+rw('Type',c.type)+rw('Priorite',c.prio)+rw('Agent',c.agent)+rw('Commande',c.cmd)+rw('Relance',c.relance)+rw('Source',c.src)+'</div>';
+if(canSeeAll())h+='<div class="sec" id="sec-order-account" style="display:none"><h3>Compte Order</h3><div id="order-account-info"></div></div>';
 if(c.comment)h+='<div class="sec"><h3>Notes</h3><div class="note-box">'+esc(c.comment)+'</div></div>';
 h+='<div class="pan-actions-sticky"><button class="btn btn-ghost" onclick="closeP()">Fermer</button><button class="btn btn-blue" onclick="setPanelEditMode(true)">Modifier</button></div>';
 }
-document.getElementById('db').innerHTML=h;document.getElementById('ov').classList.add('open');document.getElementById('pn').classList.add('open')}
+document.getElementById('db').innerHTML=h;document.getElementById('ov').classList.add('open');document.getElementById('pn').classList.add('open');
+if(canSeeAll()&&!panelEditMode&&!panelIsNew)loadOrderAccountInfo();}
+async function loadOrderAccountInfo(){
+var sec=document.getElementById('sec-order-account'),box=document.getElementById('order-account-info');
+if(!sec||!box)return;
+var c=D.find(function(x){return x.id===panelClientId});
+if(!c)return;
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/clients_order?contact_id=eq.'+encodeURIComponent(String(c.id))+'&select=nom,email,blocked',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
+if(!r.ok)return;
+var rows=await r.json();
+if(!rows.length)return;
+var o=rows[0];
+sec.style.display='';
+box.innerHTML='<div class="note-box" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="bdg" style="background:var(--green);color:#fff">Compte Order</span><span style="font-size:12px">'+esc(o.email||o.nom||'')+'</span>'+(o.blocked?'<span style="font-size:12px;color:var(--red);font-weight:700">Bloqué</span>':'<span style="font-size:12px;color:var(--green);font-weight:700">Actif</span>')+'</div>';
+}catch(_e){}
+}
 function openP(i){const c=F[i];if(!c)return;panelClientId=c.id;panelIsNew=false;panelDraftClient=null;panelEditMode=false;renderPanel()}
 function closeP(){panelEditMode=false;panelIsNew=false;panelDraftClient=null;document.getElementById('ov').classList.remove('open');document.getElementById('pn').classList.remove('open')}
 function rw(l,v){return '<div class="row"><span class="rl">'+esc(l)+'</span><span class="rv">'+(v?esc(v):'-')+'</span></div>'}
@@ -2407,8 +2425,9 @@ var hasAccount=clientAccountIds.has(c.id);
 var accessCell=hasAccount
 ?'<span class="bdg" style="background:var(--green);color:#fff">Compte</span> <button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;white-space:nowrap" onclick="resetOrderPassword(\''+c.id+'\')" title="Générer un nouveau mot de passe pour ce compte">&#128273; MDP</button>'
 :(c.email?'<button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;white-space:nowrap" onclick="createAccessFor(\''+c.id+'\')" title="Creer le compte de connexion Order pour ce client">Cr&eacute;er l\'acc&egrave;s</button>':'<span style="font-size:11px;color:var(--gray-40)">Fiche seule</span>');
+var linkLbl=coLinkedLabel(c);
 return '<tr'+(blocked?' style="opacity:.55"':'')+'>'+
-'<td><strong>'+esc(c.nom||'-')+'</strong></td>'+
+'<td><strong>'+esc(c.nom||'-')+'</strong>'+(linkLbl?'<div style="font-size:10px;color:var(--gray-40)">&#8596; '+esc(linkLbl)+'</div>':'')+'</td>'+
 '<td style="font-size:12px">'+esc(c.email||'-')+'</td>'+
 '<td>'+esc(c.tel||'-')+'</td>'+
 '<td>'+accessCell+'</td>'+
@@ -2434,6 +2453,8 @@ document.getElementById('co-blocked').value=(c&&c.blocked)?'true':'false';
 document.getElementById('co-notes').value=c?(c.notes||''):'';
 document.getElementById('co-pwd').value='';
 document.getElementById('co-pwd-wrap').style.display=id?'none':'';
+buildCoContactList();
+document.getElementById('co-contact').value=coLinkedLabel(c);
 document.getElementById('co-edit-ov').style.display='flex';
 }
 function closeClientOrder(e){
@@ -2452,13 +2473,31 @@ document.getElementById('co-tel').value=c.tel||'';
 document.getElementById('co-blocked').value=c.blocked?'true':'false';
 document.getElementById('co-notes').value=c.notes||'';
 document.getElementById('co-pwd-wrap').style.display='';
+buildCoContactList();
+var lbl=coLinkedLabel(c);
+if(!lbl&&c.email){var m=(D||[]).find(function(x){return (x.email||'').toLowerCase()===c.email.toLowerCase()});if(m)lbl=(m.nom||'')+(m.ville?' — '+m.ville:'');}
+document.getElementById('co-contact').value=lbl;
 genOrderPwd();
 document.getElementById('co-edit-ov').style.display='flex';
+}
+var coContactMap={};
+function buildCoContactList(){
+var dl=document.getElementById('co-contact-list');if(!dl)return;
+coContactMap={};
+dl.innerHTML=(D||[]).map(function(x){if(!x.nom)return '';var label=x.nom+(x.ville?' — '+x.ville:'');coContactMap[label]=x.id;return '<option value="'+esc(label)+'"></option>'}).join('');
+}
+function coLinkedLabel(c){
+if(!c||!c.contact_id)return '';
+var lk=(D||[]).find(function(x){return String(x.id)===String(c.contact_id)});
+return lk?((lk.nom||'')+(lk.ville?' — '+lk.ville:'')):'';
 }
 async function saveClientOrder(){
 var nom=document.getElementById('co-nom').value.trim();
 if(!nom){alert('Le nom est obligatoire.');return}
 var data={nom:nom,email:document.getElementById('co-email').value.trim()||null,tel:document.getElementById('co-tel').value.trim()||null,blocked:document.getElementById('co-blocked').value==='true',notes:document.getElementById('co-notes').value.trim()||null};
+var linkName=(document.getElementById('co-contact').value||'').trim();
+if(linkName){var _cid=coContactMap[linkName];if(_cid===undefined){alert('Fiche client introuvable : choisis une entrée proposée par la liste (ou vide le champ).');return}data.contact_id=String(_cid);}
+else{data.contact_id=null;}
 try{
 if(coEditId){
 await sbFetch(SUPABASE_URL+'/rest/v1/clients_order?id=eq.'+coEditId,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify(data)});
