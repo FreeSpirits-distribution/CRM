@@ -520,7 +520,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 </div>
 <div class="ca-header"><h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Journal des modifications</h2>
 <div style="display:flex;gap:10px;align-items:center;margin-top:12px;margin-bottom:12px">
-<select class="sel" id="al-table" onchange="renderAuditLog()"><option value="">Clients + Produits</option><option value="contacts">Clients</option><option value="produits">Produits</option></select>
+<select class="sel" id="al-table" onchange="renderAuditLog()"><option value="">Tout</option><option value="contacts">Modifications clients</option><option value="produits">Modifications produits</option><option value="login_staff">Connexions &eacute;quipe</option><option value="login_client">Connexions clients</option></select>
 <input type="text" class="search" id="al-search" placeholder="Filtrer (nom, auteur...)" oninput="renderAuditLog()" style="width:220px">
 <span id="al-count" style="font-size:13px;color:var(--gray-40)"></span>
 </div>
@@ -2431,9 +2431,17 @@ async function loadAuditLog(){
 if(!canSeeAll())return;
 var tb=document.getElementById('al-tbody');if(!tb)return;
 try{
-var r=await fetch(SUPABASE_URL+'/rest/v1/audit_log?select=*&order=at.desc&limit=200',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
-if(!r.ok){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Journal indisponible — le SQL audit_log a-t-il été exécuté ?</td></tr>';return}
-auditLogData=await r.json();
+var hdrs={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'Content-Type':'application/json'};
+var res=await Promise.all([
+fetch(SUPABASE_URL+'/rest/v1/audit_log?select=*&order=at.desc&limit=200',{headers:hdrs}),
+fetch(SUPABASE_URL+'/rest/v1/rpc/get_login_log',{method:'POST',headers:hdrs,body:JSON.stringify({p_limit:200})})
+]);
+var mods=res[0].ok?await res[0].json():[];
+var logins=res[1].ok?await res[1].json():[];
+if(!res[0].ok&&!res[1].ok){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Journal indisponible — les SQL audit_log et get_login_log ont-ils été exécutés ?</td></tr>';return}
+auditLogData=mods.map(function(m){m._kind='mod';return m}).concat(
+logins.map(function(l){return {_kind:'login',at:l.at,user_email:l.email,agent_code:l.agent_code,user_role:l.user_role,action:l.action}}));
+auditLogData.sort(function(a,b){return new Date(b.at)-new Date(a.at)});
 renderAuditLog();
 }catch(e){tb.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:16px">Erreur: '+esc(e.message)+'</td></tr>'}
 }
@@ -2441,18 +2449,25 @@ function renderAuditLog(){
 var tb=document.getElementById('al-tbody');if(!tb)return;
 var ft=document.getElementById('al-table').value;
 var q=(document.getElementById('al-search').value||'').toLowerCase();
+var isStaffRole=function(r){return r==='admin'||r==='manager'||r==='agent'};
 var rows=auditLogData.filter(function(l){
-if(ft&&l.table_name!==ft)return false;
+if(ft==='contacts'||ft==='produits'){if(l._kind!=='mod'||l.table_name!==ft)return false}
+else if(ft==='login_staff'){if(l._kind!=='login'||!isStaffRole(l.user_role))return false}
+else if(ft==='login_client'){if(l._kind!=='login'||isStaffRole(l.user_role))return false}
 if(q&&!(((l.row_label||'')+' '+(l.user_email||'')+' '+(l.agent_code||'')).toLowerCase().includes(q)))return false;
 return true});
 document.getElementById('al-count').textContent=rows.length+' entrée(s)';
 if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--gray-40);padding:16px">Aucune modification enregistrée pour l\'instant</td></tr>';return}
-var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)']};
+var AC={INSERT:['Création','var(--green)'],UPDATE:['Modification','var(--navy)'],DELETE:['Suppression','var(--red)'],login:['Connexion','var(--green)'],logout:['Déconnexion','var(--gray-40)'],user_signedup:['Inscription','var(--orange)']};
 tb.innerHTML=rows.map(function(l){
 var d=new Date(l.at);
 var when=d.toLocaleDateString('fr-FR')+'<br>'+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 var who=(l.user_email||'—')+(l.agent_code?' ('+l.agent_code+')':'');
 var a=AC[l.action]||[l.action,'var(--gray-40)'];
+if(l._kind==='login'){
+var roleLbl=isStaffRole(l.user_role)?('Équipe'+(l.agent_code?' — '+l.agent_code:'')):'Client';
+return '<tr><td style="font-size:11px;white-space:nowrap">'+when+'</td><td style="font-size:11px">'+esc(l.user_email||'—')+'</td><td><span class="bdg" style="background:'+a[1]+';color:#fff">'+a[0]+'</span></td><td style="font-size:12px"><b>'+esc(roleLbl)+'</b><div style="font-size:10px;color:var(--gray-40)">'+(isStaffRole(l.user_role)?'CRM':'Portail Order')+'</div></td><td style="font-size:11px;color:var(--gray-40)">—</td></tr>';
+}
 var detail='';
 if(l.action==='UPDATE'&&l.changes){
 detail=Object.keys(l.changes).map(function(k){var c=l.changes[k]||{};var av=(c.avant===null||c.avant===undefined)?'—':String(c.avant);var ap=(c.apres===null||c.apres===undefined)?'—':String(c.apres);if(av.length>28)av=av.slice(0,28)+'…';if(ap.length>28)ap=ap.slice(0,28)+'…';return k+' : '+av+' → '+ap}).join(' ; ');
