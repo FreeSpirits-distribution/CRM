@@ -603,6 +603,16 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <th style="width:120px">Derni&egrave;re activit&eacute;</th><th>Client</th><th>Produits</th><th>Bouteilles</th><th>Total HT</th><th style="width:150px">Statut</th>
 </tr></thead><tbody id="pn-tbody"></tbody></table>
 </div>
+
+<div class="ca-header" style="margin-top:32px">
+<h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:0">Documents l&eacute;gaux (portail Order)</h2>
+</div>
+<div style="background:var(--card);border:1px solid var(--gray-10);border-radius:8px;padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+<a id="cgv-current" href="#" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:6px 14px;font-size:12px">Voir le CGV en ligne</a>
+<input type="file" id="cgv-file" accept="application/pdf" style="font-size:12px">
+<button class="btn btn-blue" onclick="uploadCGV()">Mettre &agrave; jour le CGV</button>
+<span style="font-size:11px;color:var(--gray-40)">Le PDF remplace imm&eacute;diatement celui du lien &laquo; Conditions g&eacute;n&eacute;rales de vente &raquo; en bas du portail Order.</span>
+</div>
 <div class="ca-add-modal-overlay" id="co-edit-ov" style="display:none" onclick="closeClientOrder(event)">
 <div class="ca-add-modal" onclick="event.stopPropagation()" style="max-width:460px">
 <div class="ca-add-head"><h3 id="co-edit-title">Client Order</h3><button class="ca-add-close" onclick="closeClientOrder()">&times;</button></div>
@@ -736,7 +746,7 @@ const DCOL=['#b87333','#6b8f5e','#d4a054','#8b6b8a','#c45c5c'];
 function switchTab(t){document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');const tabMap={crm:0,tour:1,ca:2,catalog:3,admin:4};const tabs=document.querySelectorAll('.nav-tab[onclick]');if(tabMap[t]!==undefined&&tabs[tabMap[t]])tabs[tabMap[t]].classList.add('active');if(t==='tour'){initWeekSelector();initBaseSelector();renderRelances()}if(t==='ca'){renderCA();loadPFO()}if(t==='catalog'){loadCatalog()}if(t==='admin'){
 var _kids=document.getElementById('tab-admin').children;
 for(var _i=4;_i<_kids.length;_i++){if(_kids[_i].classList&&_kids[_i].classList.contains('ca-add-modal-overlay'))continue;_kids[_i].style.display=isAdminRole()?'':'none';}
-loadSettings();loadAuditLog();
+loadSettings();loadAuditLog();initCGVLink();
 if(isAdminRole()){loadProfiles();loadClientsOrder().then(function(){loadPaniers()});populateTransferCodes()}
 }}
 
@@ -2485,6 +2495,23 @@ return '<tr><td style="font-size:11px;white-space:nowrap">'+when+'</td><td style
 if(rows.length>4){
 tb.innerHTML+='<tr><td colspan="5" style="text-align:center;padding:10px;background:var(--gray-05)"><button class="btn btn-ghost" style="padding:5px 16px;font-size:11px" onclick="auditLogExpanded=!auditLogExpanded;renderAuditLog()">'+(auditLogExpanded?'&#9650; Réduire — ne garder que les 4 derniers':'&#9660; Afficher les '+(rows.length-4)+' mouvements précédents')+'</button></td></tr>';
 }
+}
+// ===== Documents legaux (CGV) =====
+async function uploadCGV(){
+var f=document.getElementById('cgv-file').files[0];
+if(!f){alert('Choisis d\'abord un fichier PDF.');return}
+if(f.type!=='application/pdf'){alert('Le fichier doit être un PDF.');return}
+if(!confirm('Remplacer le CGV en ligne par « '+f.name+' » ?\nLe nouveau document sera immédiatement visible par les clients.'))return;
+try{
+var r=await fetch(SUPABASE_URL+'/storage/v1/object/documents/CGV.pdf',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken,'x-upsert':'true','Content-Type':'application/pdf'},body:f});
+if(!r.ok){var t=await r.json().catch(function(){return {}});throw new Error(t.message||('HTTP '+r.status))}
+document.getElementById('cgv-file').value='';
+showSaved('CGV mis à jour');
+}catch(e){alert('Erreur: '+e.message+'\n\nLe SQL du bucket documents a-t-il été exécuté ?')}
+}
+function initCGVLink(){
+var a=document.getElementById('cgv-current');
+if(a)a.href=SUPABASE_URL+'/storage/v1/object/public/documents/CGV.pdf?v='+Date.now();
 }
 // ===== Paniers clients Order =====
 async function loadPaniers(){
