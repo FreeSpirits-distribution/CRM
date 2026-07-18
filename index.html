@@ -527,7 +527,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>Mot de passe</label><input type="text" id="ag-password" placeholder="Min. 6 caract&egrave;res"></div>
 <div class="ca-add-field"><label>Code Agent</label><input type="text" id="ag-code" placeholder="ex: MBO, LCB..." style="text-transform:uppercase"></div>
 <div class="ca-add-field"><label>Nom affich&eacute;</label><input type="text" id="ag-name" placeholder="Pr&eacute;nom Nom"></div>
-<div class="ca-add-field"><label>R&ocirc;le</label><select id="ag-role"><option value="agent">Agent</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
+<div class="ca-add-field"><label>R&ocirc;le</label><select id="ag-role"><option value="agent">Agent</option><option value="manager">Manager</option><option value="admin">Admin</option><option value="client_order">Client Order</option></select></div>
 <div class="ca-add-field full"><label>Codes suppl&eacute;mentaires (s&eacute;par&eacute;s par virgule)</label><input type="text" id="ag-codes" placeholder="ex: IDF,NOR,EST"></div>
 </div>
 <div class="ca-add-foot">
@@ -2580,6 +2580,7 @@ return '<tr>'+
 '<option value="agent"'+(p.role==='agent'?' selected':'')+'>Agent</option>'+
 '<option value="manager"'+(p.role==='manager'?' selected':'')+'>Manager</option>'+
 '<option value="admin"'+(p.role==='admin'?' selected':'')+'>Admin</option>'+
+'<option value="client_order"'+(p.role==='client_order'?' selected':'')+'>Client Order</option>'+
 '</select></td>'+
 '<td><input type="text" value="'+esc(codesVal)+'" onchange="updateProfileCodes(\''+p.id+'\',this.value)" style="width:140px;font-size:11px" placeholder="IDF,NOR,..."></td>'+
 '<td><input type="email" value="'+esc(p.email||'')+'" onchange="updateProfileField(\''+p.id+'\',\'email\',this.value)" style="width:200px;font-size:12px" placeholder="agent@email.com"></td>'+
