@@ -2394,7 +2394,7 @@ var blocked=!!c.blocked;
 var d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR'):'-';
 var hasAccount=clientAccountIds.has(c.id);
 var accessCell=hasAccount
-?'<span class="bdg" style="background:var(--green);color:#fff">Compte</span>'
+?'<span class="bdg" style="background:var(--green);color:#fff">Compte</span> <button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;white-space:nowrap" onclick="resetOrderPassword(\''+c.id+'\')" title="Générer un nouveau mot de passe pour ce compte">&#128273; MDP</button>'
 :(c.email?'<button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;white-space:nowrap" onclick="createAccessFor(\''+c.id+'\')" title="Creer le compte de connexion Order pour ce client">Cr&eacute;er l\'acc&egrave;s</button>':'<span style="font-size:11px;color:var(--gray-40)">Fiche seule</span>');
 return '<tr'+(blocked?' style="opacity:.55"':'')+'>'+
 '<td><strong>'+esc(c.nom||'-')+'</strong></td>'+
@@ -2484,11 +2484,24 @@ showSaved('Client ajoute (fiche seule, sans compte)');
 closeClientOrder();await loadClientsOrder();
 }catch(e){alert('Erreur: '+e.message)}
 }
-function genOrderPwd(){
+function genPwdString(){
 var chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
 var p='';var a=new Uint32Array(10);crypto.getRandomValues(a);
 for(var i=0;i<10;i++)p+=chars[a[i]%chars.length];
-document.getElementById('co-pwd').value=p;
+return p;
+}
+function genOrderPwd(){document.getElementById('co-pwd').value=genPwdString();}
+async function resetOrderPassword(id){
+var c=clientsOrderData.find(function(x){return x.id===id});
+if(!c)return;
+var np=genPwdString();
+if(!confirm('Générer un nouveau mot de passe pour '+(c.email||c.nom)+' ?\n\nL\'ancien mot de passe cessera de fonctionner immédiatement.'))return;
+try{
+var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_set_user_password',{method:'POST',headers:sbHeaders(),body:JSON.stringify({target_user:id,new_password:np})});
+if(!r.ok){var t=await r.text();throw new Error(t)}
+prompt('Nouveau mot de passe de '+(c.email||c.nom)+' — copie-le et transmets-le au client (il pourra le changer dans Mon compte) :',np);
+showSaved('Mot de passe régénéré');
+}catch(e){alert('Erreur: '+e.message+'\n\nAs-tu bien exécuté le script SQL admin_set_user_password ?')}
 }
 async function toggleBlockClient(id,block){
 try{
