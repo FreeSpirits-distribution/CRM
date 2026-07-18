@@ -2418,7 +2418,7 @@ if(pwd){
 if(!data.email){alert('Un email est obligatoire pour creer un compte de connexion.');return}
 if(pwd.length<6){alert('Le mot de passe initial doit faire au moins 6 caracteres.');return}
 // 1. Creation du compte Auth (role client_order via metadonnees)
-var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:data.email,password:pwd,data:{display_name:data.nom,tel:data.tel||'',role:'client_order'}})});
+var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup?redirect_to='+encodeURIComponent('https://freespirits-distribution.github.io/Order/'),{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:data.email,password:pwd,data:{display_name:data.nom,tel:data.tel||'',role:'client_order'}})});
 var signData=await signRes.json();
 if(!signRes.ok){
 var m=signData.msg||signData.error_description||(signData.error&&signData.error.message)||JSON.stringify(signData);
@@ -2623,7 +2623,7 @@ if(!email||!password||!code){alert('Email, mot de passe et code agent sont oblig
 if(password.length<6){alert('Le mot de passe doit faire au moins 6 caractères.');return}
 try{
 // Create user via Supabase Auth signup
-var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup',{
+var signRes=await fetch(SUPABASE_URL+'/auth/v1/signup?redirect_to='+encodeURIComponent('https://freespirits-distribution.github.io/CRM/'),{
 method:'POST',
 headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email,password:password,data:{agent_code:code,display_name:name,role:role}})
@@ -2691,7 +2691,7 @@ async function resetAgentPassword(email,code){
 if(!email){alert('Aucun email enregistré pour cet agent. Renseignez d\'abord son email.');return}
 if(!confirm('Envoyer un lien de réinitialisation de mot de passe à '+email+' ('+code+') ?'))return;
 try{
-var res=await fetch(SUPABASE_URL+'/auth/v1/recover',{
+var res=await fetch(SUPABASE_URL+'/auth/v1/recover?redirect_to='+encodeURIComponent('https://freespirits-distribution.github.io/CRM/'),{
 method:'POST',
 headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
 body:JSON.stringify({email:email})
