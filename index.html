@@ -672,7 +672,11 @@ let currentAgent='',currentRole='',currentAgentCodes=[],currentDisplayName='';
 function canSeeAll(){return currentRole==='admin'||currentRole==='manager'}
 function isAdminRole(){return currentRole==='admin'}
 function showClientRedirect(){
-if(currentRole!=='client_order'&&currentAgent!=='NOUVEAU')return false;
+if(currentRole!=='client_order')return false;
+// Purger la session CRM pour ne pas bloquer la page de connexion au prochain passage
+localStorage.removeItem('sb_token');
+sessionStorage.removeItem('sb_refresh');
+supabaseToken=null;
 document.getElementById('loading-screen').style.display='none';
 document.getElementById('login-screen').style.display='none';
 document.getElementById('app-content').style.display='none';
@@ -708,7 +712,6 @@ document.getElementById('nav-agent-code').textContent=currentAgent||'FSD';
 if(isAdminRole()){document.getElementById('nav-badge').textContent='Admin — '+currentAgent}
 else if(currentRole==='manager'){document.getElementById('nav-badge').textContent='Manager — '+currentAgent}
 else{document.getElementById('nav-badge').textContent='Secteur '+currentAgent}
-if(showClientRedirect())return;
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
