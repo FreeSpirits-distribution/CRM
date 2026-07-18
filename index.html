@@ -2494,10 +2494,11 @@ function genOrderPwd(){document.getElementById('co-pwd').value=genPwdString();}
 async function resetOrderPassword(id){
 var c=clientsOrderData.find(function(x){return x.id===id});
 if(!c)return;
+if(!c.email){alert('Aucun email sur cette fiche.');return}
 var np=genPwdString();
-if(!confirm('Générer un nouveau mot de passe pour '+(c.email||c.nom)+' ?\n\nL\'ancien mot de passe cessera de fonctionner immédiatement.'))return;
+if(!confirm('Générer un nouveau mot de passe pour '+c.email+' ?\n\nL\'ancien mot de passe cessera de fonctionner immédiatement.'))return;
 try{
-var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_set_user_password',{method:'POST',headers:sbHeaders(),body:JSON.stringify({target_user:id,new_password:np})});
+var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_set_user_password_by_email',{method:'POST',headers:sbHeaders(),body:JSON.stringify({target_email:c.email,new_password:np})});
 if(!r.ok){var t=await r.text();throw new Error(t)}
 prompt('Nouveau mot de passe de '+(c.email||c.nom)+' — copie-le et transmets-le au client (il pourra le changer dans Mon compte) :',np);
 showSaved('Mot de passe régénéré');
