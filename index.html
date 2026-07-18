@@ -671,8 +671,7 @@ let D=[]
 let currentAgent='',currentRole='',currentAgentCodes=[],currentDisplayName='';
 function canSeeAll(){return currentRole==='admin'||currentRole==='manager'}
 function isAdminRole(){return currentRole==='admin'}
-function showClientRedirect(){
-if(currentRole!=='client_order')return false;
+function displayClientRedirect(){
 // Purger la session CRM pour ne pas bloquer la page de connexion au prochain passage
 localStorage.removeItem('sb_token');
 sessionStorage.removeItem('sb_refresh');
@@ -683,6 +682,13 @@ document.getElementById('app-content').style.display='none';
 document.getElementById('client-redirect-screen').style.display='flex';
 setTimeout(function(){location.href='https://freespirits-distribution.github.io/Order/'},5000);
 return true;
+}
+async function checkClientOrderRedirect(){
+// Liste blanche : seuls les profils crees depuis "Gestion des profils agents" accedent au CRM
+if(canSeeAll())return false;
+if(currentRole==='agent'&&currentAgent&&currentAgent!=='NOUVEAU')return false;
+// Tout le reste (clients Order, inscrits via Order, comptes sans code agent) → portail Order
+return displayClientRedirect();
 }
 const BASES_ADMIN={"villeneuve":{"name":"Villeneuve-d'Ascq (59)","lat":50.6333,"lon":3.1333,"dept":"59"},"herouville":{"name":"Hérouville-Saint-Clair (14)","lat":49.205,"lon":-0.35,"dept":"14"}};
 let customBase=null;
@@ -2050,7 +2056,7 @@ document.getElementById('loading-screen').style.display='flex';
 const ok=await loadFromSupabase();
 if(ok){
 // Apply role visibility BEFORE showing app
-if(showClientRedirect())return;
+if(await checkClientOrderRedirect())return;
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
@@ -2795,7 +2801,7 @@ document.getElementById('loading-screen').style.display='flex';
 const ok=await loadFromSupabase();
 if(ok){
 // Apply role visibility BEFORE showing app
-if(showClientRedirect())return;
+if(await checkClientOrderRedirect())return;
 document.getElementById('nav-ca').classList.toggle('hidden-tab',!isAdminRole());
 document.getElementById('nav-catalog').classList.toggle('hidden-tab',!canSeeAll());
 document.getElementById('nav-admin').classList.toggle('hidden-tab',!isAdminRole());
