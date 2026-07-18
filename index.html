@@ -583,7 +583,7 @@ thead th{font-family:'Archivo',sans-serif;letter-spacing:.07em;background:#fff;b
 <div class="ca-add-field"><label>T&eacute;l&eacute;phone</label><input type="text" id="co-tel"></div>
 <div class="ca-add-field"><label>Statut</label><select id="co-blocked"><option value="false">Actif</option><option value="true">Bloqu&eacute;</option></select></div>
 <div class="ca-add-field full"><label>Notes</label><input type="text" id="co-notes"></div>
-<div class="ca-add-field full"><label>Fiche client CRM (optionnel)</label><input type="text" id="co-contact" list="co-contact-list" placeholder="Chercher une fiche par nom..." autocomplete="off"><datalist id="co-contact-list"></datalist><div style="font-size:11px;color:var(--gray-40);margin-top:4px">Relie ce compte Order &agrave; une fiche du CRM (visible dans la fiche pour admin/manager).</div></div>
+<div class="ca-add-field full"><label>Fiche client CRM (optionnel)</label><input type="text" id="co-contact" list="co-contact-list" placeholder="Chercher une fiche par nom..." autocomplete="off" oninput="coContactPicked()"><datalist id="co-contact-list"></datalist><div style="font-size:11px;color:var(--gray-40);margin-top:4px">Relie ce compte Order &agrave; une fiche du CRM (visible dans la fiche pour admin/manager).</div></div>
 <div class="ca-add-field full" id="co-pwd-wrap"><label>Mot de passe initial (cr&eacute;e le compte de connexion)</label><div style="display:flex;gap:8px"><input type="text" id="co-pwd" placeholder="laisser vide = fiche sans compte" style="flex:1"><button class="btn btn-ghost" type="button" onclick="genOrderPwd()" style="padding:6px 10px;font-size:11px;white-space:nowrap">G&eacute;n&eacute;rer</button></div><div style="font-size:11px;color:var(--gray-40);margin-top:4px">&Agrave; transmettre au client &mdash; il pourra le changer lui-m&ecirc;me dans son espace Order (bouton Mon compte).</div></div>
 </div>
 <div class="ca-add-foot">
@@ -826,7 +826,9 @@ try{
 var r=await fetch(SUPABASE_URL+'/rest/v1/clients_order?contact_id=eq.'+encodeURIComponent(String(c.id))+'&select=nom,email,blocked',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+supabaseToken}});
 if(!r.ok)return;
 var rows=await r.json();
-if(!rows.length)return;
+if(!rows.length){
+if(isAdminRole()){sec.style.display='';box.innerHTML='<div class="note-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;color:var(--gray-40)">Aucun compte de commande en ligne</span><button class="btn btn-blue" style="padding:5px 12px;font-size:11px" onclick="openOrderAccountFromFiche(\''+esc(String(c.id))+'\')">Créer le compte Order</button></div>';}
+return}
 var o=rows[0];
 sec.style.display='';
 box.innerHTML='<div class="note-box" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="bdg" style="background:var(--green);color:#fff">Compte Order</span><span style="font-size:12px">'+esc(o.email||o.nom||'')+'</span>'+(o.blocked?'<span style="font-size:12px;color:var(--red);font-weight:700">Bloqué</span>':'<span style="font-size:12px;color:var(--green);font-weight:700">Actif</span>')+'</div>';
@@ -2491,6 +2493,29 @@ if(!c||!c.contact_id)return '';
 var lk=(D||[]).find(function(x){return String(x.id)===String(c.contact_id)});
 return lk?((lk.nom||'')+(lk.ville?' — '+lk.ville:'')):'';
 }
+function coContactPicked(){
+var v=(document.getElementById('co-contact').value||'').trim();
+var cid=coContactMap[v];if(cid===undefined)return;
+var c=(D||[]).find(function(x){return String(x.id)===String(cid)});if(!c)return;
+var f=function(id,val){var el=document.getElementById(id);if(el&&!el.value.trim()&&val)el.value=val};
+f('co-nom',c.nom);f('co-email',c.email);f('co-tel',c.port||c.tel);
+}
+function openOrderAccountFromFiche(cId){
+var c=(D||[]).find(function(x){return String(x.id)===String(cId)});
+if(!c)return;
+coEditId=null;
+document.getElementById('co-edit-title').textContent='Créer le compte Order : '+(c.nom||'');
+document.getElementById('co-nom').value=c.nom||'';
+document.getElementById('co-email').value=c.email||'';
+document.getElementById('co-tel').value=c.port||c.tel||'';
+document.getElementById('co-blocked').value='false';
+document.getElementById('co-notes').value='';
+document.getElementById('co-pwd-wrap').style.display='';
+buildCoContactList();
+document.getElementById('co-contact').value=(c.nom||'')+(c.ville?' — '+c.ville:'');
+genOrderPwd();
+document.getElementById('co-edit-ov').style.display='flex';
+}
 async function saveClientOrder(){
 var nom=document.getElementById('co-nom').value.trim();
 if(!nom){alert('Le nom est obligatoire.');return}
@@ -2532,6 +2557,7 @@ showSaved('Client ajoute (fiche seule, sans compte)');
 }
 }
 closeClientOrder();await loadClientsOrder();
+if(document.getElementById('sec-order-account'))loadOrderAccountInfo();
 }catch(e){alert('Erreur: '+e.message)}
 }
 function genPwdString(){
